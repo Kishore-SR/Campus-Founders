@@ -17,21 +17,21 @@ export const Navbar = () => {
       {/* Desktop Top Navbar */}
       <nav className="top-navbar">
         <div className="logo-title">
-          <img src="/logo.gif" alt="Logo" className="logo" />
-          <span className="title">Top Hackathons</span>
+          <img src="/logo.svg" alt="Logo" className="logo" />
+          <span className="title">Campus Founders</span>
         </div>
         <div className="nav-links">
           <Link to="/" className={`nav-item ${location.pathname === "/" ? "active" : ""}`}>
             <i className="ri-home-5-line"></i>
             <span>Home</span>
           </Link>
-          <Link to="/explore" className={`nav-item ${location.pathname === "/explore" ? "active" : ""}`}>
+          <Link to="/discover" className={`nav-item ${location.pathname === "/discover" ? "active" : ""}`}>
             <i className="ri-search-line"></i>
-            <span>Explore</span>
+            <span>Discover</span>
           </Link>
-          <Link to="/tools" className={`nav-item ${location.pathname === "/tools" ? "active" : ""}`}>
-            <i className="ri-function-add-line"></i>
-            <span>Tools</span>
+          <Link to="/mystartup" className={`nav-item ${location.pathname === "/mystartup" ? "active" : ""}`}>
+            <i class="ri-heart-3-line"></i>
+            <span>Startup</span>
           </Link>
           {/* Profile Link (Dynamic based on login state) */}
           {isSignedIn ? (
@@ -54,13 +54,13 @@ export const Navbar = () => {
           <i className="ri-home-5-line"></i>
           <span>Home</span>
         </Link>
-        <Link to="/explore" className={`nav-item ${location.pathname === "/explore" ? "active" : ""}`}>
+        <Link to="/discover" className={`nav-item ${location.pathname === "/discover" ? "active" : ""}`}>
           <i className="ri-search-line"></i>
-          <span>Explore</span>
+          <span>Discover</span>
         </Link>
-        <Link to="/tools" className={`nav-item ${location.pathname === "/tools" ? "active" : ""}`}>
-          <i className="ri-function-add-line"></i>
-          <span>Tools</span>
+        <Link to="/mystartup" className={`nav-item ${location.pathname === "/mystartup" ? "active" : ""}`}>
+          <i class="ri-heart-3-line"></i>
+          <span>Startup</span>
         </Link>
         {/* Profile Link (Dynamic based on login state) */}
         {isSignedIn ? (

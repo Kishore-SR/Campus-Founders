@@ -53,13 +53,17 @@
   gap: 20px;
 }
 
-.nav-item{
-  gap: 6px;
+.nav-item {
+  gap: 4px;
   transition: all 0.2s;
+  
 }
 
-.nav-item:hover{
+.nav-item:hover {
   color: gray;
+}
+.lang-mobile {
+  display: none;
 }
 /* ====== Mobile Bottom Navbar ====== */
 .bottom-navbar {
@@ -78,27 +82,32 @@
   font-size: 0.8rem;
 }
 
-.nav-item.active{
+.nav-item.active {
   font-weight: bold;
 }
-.nav-item.active[href="/"] {
-  color: #05b305 !important; 
-}
-.nav-item.active[href="/explore"] {
-  color: #007bff !important; 
-}
-.nav-item.active[href="/tools"] {
-  color: #f59f00 !important; 
+
+.nav-item.active[href="/"], .nav-item.active[href="/discover"], .nav-item.active[href="/mystartup"] {
+  color: #FF5733 !important;
 }
 
 .nav-item.active i {
   animation: rotateStar 0.5s ease-in-out;
 }
-
+.nav-item.active span{
+  background-color: rgba(250, 189, 165, 0.767);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
 @keyframes rotateStar {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(10deg) scale(1.2); }
-  100% { transform: rotate(0deg) scale(1); }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(10deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
 }
 
 /* Hide bottom navbar in desktop */
@@ -110,6 +119,9 @@
 
 /* Hide top navbar in mobile */
 @media (max-width: 767px) {
+  .lang-mobile {
+    display: block;
+  }
   .top-navbar {
     display: none;
   }
