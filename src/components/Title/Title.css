@@ -1,0 +1,24 @@
+@media (max-width: 767px) {
+    .home-title {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 6px 16px;
+      position: fixed;
+      top: 0;
+      width: 100vw;
+      background: rgba(255, 255, 255, 0.46);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(9.4px);
+      -webkit-backdrop-filter: blur(9.4px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      z-index: 7;
+    }
+  
+    .home-title span {
+      font-size: 1.2rem;
+    }
+    .home-title img {
+      height: 32px;
+    }
+}  

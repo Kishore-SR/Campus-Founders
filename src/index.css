@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap');
+
+/* Global Styles */
+:root {
+  --primary-color: #FF5733; 
+  --black:#272020; 
+}
+
+body {
+  font-family: var(--font-family);
+  --font-family: "Host Grotesk", sans-serif; 
+  background-color: #fafafa; 
+  color: var(--black); 
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a {
+  outline: none;
+  box-shadow: none;
+}

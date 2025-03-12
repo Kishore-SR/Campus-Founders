@@ -1,0 +1,123 @@
+/* General Styles */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 16px;
+  color: #333;
+  padding: 0px 10px;
+  transition: color 0.3s ease-in-out;
+  position: relative;
+}
+
+.nav-item i {
+  font-size: 20px;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* ====== Desktop Top Navbar ====== */
+.top-navbar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  gap: 40px;
+}
+
+.logo-title {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item{
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.nav-item:hover{
+  color: gray;
+}
+/* ====== Mobile Bottom Navbar ====== */
+.bottom-navbar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+}
+
+.bottom-navbar .nav-item {
+  flex-direction: column;
+  font-size: 0.8rem;
+}
+
+.nav-item.active{
+  font-weight: bold;
+}
+.nav-item.active[href="/"] {
+  color: #05b305 !important; 
+}
+.nav-item.active[href="/explore"] {
+  color: #007bff !important; 
+}
+.nav-item.active[href="/tools"] {
+  color: #f59f00 !important; 
+}
+
+.nav-item.active i {
+  animation: rotateStar 0.5s ease-in-out;
+}
+
+@keyframes rotateStar {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(10deg) scale(1.2); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+/* Hide bottom navbar in desktop */
+@media (min-width: 768px) {
+  .bottom-navbar {
+    display: none;
+  }
+}
+
+/* Hide top navbar in mobile */
+@media (max-width: 767px) {
+  .top-navbar {
+    display: none;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+    padding: 10px;
+  }
+}
