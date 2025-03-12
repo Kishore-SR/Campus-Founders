@@ -410,7 +410,7 @@ const Discover = () => {
                     {selectedStartup.funding_rounds.map((round, index) => (
                       <div key={index} className="funding-round">
                         <h4>{round.name}</h4>
-                        <p className="funding-amount">${round.amount.toLocaleString()}</p>
+                        <p className="funding-amount"> Rs. {round.amount.toLocaleString()}</p>
                         <p className="funding-date">{round.date}</p>
                       </div>
                     ))}
