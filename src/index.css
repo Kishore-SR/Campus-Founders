@@ -9,7 +9,7 @@
 body {
   font-family: var(--font-family);
   --font-family: "Host Grotesk", sans-serif; 
-  background-color: #fafafa; 
+  background-color: #f8f9fa; 
   color: var(--black); 
   margin: 0;
   padding: 0;

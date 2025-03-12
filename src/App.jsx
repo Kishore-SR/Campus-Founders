@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/NavBar/NavBar";
-import { Home } from "./pages/Home/Home";
+import  Home  from "./pages/Home/Home";
 import {Discover} from "./pages/Discover/Discover";
 import  {MyStartup}  from "./pages/MyStartup/MyStartup";
 import { HelmetProvider } from "react-helmet-async";
