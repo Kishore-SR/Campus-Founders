@@ -367,7 +367,7 @@ const Discover = () => {
                   </div>
                   <div className="metric-card">
                     <h4>Revenue</h4>
-                    <p className="metric-value">${selectedStartup.revenue?.toLocaleString() || '0'}</p>
+                    <p className="metric-value"> Rs.{selectedStartup.revenue?.toLocaleString() || '0'}</p>
                   </div>
                   <div className="metric-card">
                     <h4>Growth Rate</h4>
