@@ -68,7 +68,11 @@ const AIChatbot = () => {
     }
   }, [isOpen]);
 
-  const handleSend = async (textToSend = null) => {
+  const handleSend = async (textToSend = null, e = null) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const queryText = textToSend || input.trim();
     if (!queryText || isLoading) return;
 
@@ -206,7 +210,12 @@ const AIChatbot = () => {
                   {msg.suggestions.map((suggestion, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleSuggestionClick(suggestion)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSuggestionClick(suggestion);
+                      }}
                       className="btn btn-sm btn-outline btn-primary text-xs"
                     >
                       {suggestion}
@@ -345,7 +354,15 @@ const AIChatbot = () => {
 
       {/* Input */}
       <div className="p-4 border-t border-base-300">
-        <div className="flex gap-2">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSend();
+            return false;
+          }}
+          className="flex gap-2"
+        >
           <input
             ref={inputRef}
             type="text"
@@ -357,13 +374,18 @@ const AIChatbot = () => {
             disabled={isLoading}
           />
           <button
-            onClick={handleSend}
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSend();
+            }}
             className="btn btn-primary"
             disabled={isLoading || !input.trim()}
           >
             <Send className="size-4" />
           </button>
-        </div>
+        </form>
         <p className="text-xs opacity-60 mt-2">
           Try: "Show me fintech" or "Find edtech startups" or "List investors"
         </p>

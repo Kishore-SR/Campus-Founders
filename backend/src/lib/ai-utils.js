@@ -753,6 +753,58 @@ Want to see ${matchedCategory} startups? Just ask: "Show me ${matchedCategory} s
     }
   }
 
+  // Navigation queries - CHECK BEFORE HELP
+  if (
+    /(navigate|navigation|how to navigate|help me navigate|how do i navigate|where is|where can i find|how to find|how to get to|how to access|where to go|show me where|direct me|guide me|how to use|how to get started|getting started)/.test(
+      lowerQuery
+    )
+  ) {
+    return {
+      response: `🗺️ **Platform Navigation Guide:**
+
+**Main Pages:**
+• **Home** - Dashboard with featured startups and quick access
+• **Startups** - Browse all approved startups with filters
+• **Investors** - View investor profiles and connect
+• **Connections** - Manage your network and friends
+• **Resources** - Access courses and learning materials (Premium)
+• **Profile** - Edit your profile and manage settings
+
+**Key Features:**
+• **AI Chatbot** (Premium) - Click the sparkles icon for AI assistance
+• **Search** - Use the search bar to find startups or users
+• **Filters** - On Startups page, filter by category, stage, or sort
+• **AI Search** - Click sparkles icon on Startups page for semantic search
+
+**For Founders:**
+• Go to Profile → Create/Edit Startup
+• Submit for approval once complete
+• Track upvotes and reviews
+
+**For Investors:**
+• Browse Startups page
+• Use AI recommendations
+• Connect with founders (Premium)
+• Make investment commitments
+
+**Quick Actions:**
+• Click "Startups" in sidebar to browse
+• Click "Investors" to see investor profiles
+• Click "Connections" to manage your network
+• Use AI chatbot (Premium) for help anytime
+
+**Premium Features:**
+• AI chatbot access
+• Video calls with connections
+• Extended AI search
+• Access to courses
+• Startup matching scores
+
+Need help with a specific page or feature? Just ask!`,
+      type: "information",
+    };
+  }
+
   // Help queries - more comprehensive
   if (
     /(help|how|what|explain|tell me|guide|how do|how can|what is|what are)/.test(
