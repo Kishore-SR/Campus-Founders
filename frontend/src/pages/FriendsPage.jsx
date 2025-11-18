@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
-import { getUserFriends, getStreamToken } from "../lib/api";
+import { getUserFriends } from "../lib/api";
 import { getLanguageFlag } from "../components/FriendCard";
 import toast from "react-hot-toast";
-import { StreamChat } from "stream-chat";
 import useAuthUser from "../hooks/useAuthUser";
 import {
   MessageSquareIcon,
@@ -15,8 +14,6 @@ import {
   FilterIcon,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
-
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 const FriendsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,13 +27,6 @@ const FriendsPage = () => {
     queryKey: ["friends"],
     queryFn: getUserFriends,
     onSuccess: (data) => console.log("Friends data:", data),
-  });
-
-  // Fetch Stream token for video calls
-  const { data: tokenData } = useQuery({
-    queryKey: ["streamToken"],
-    queryFn: getStreamToken,
-    enabled: !!authUser,
   });
   const filteredFriends = friends.filter((friend) => {
     // First filter out any null or invalid friend objects
@@ -83,54 +73,11 @@ const FriendsPage = () => {
       return;
     }
 
-    if (!tokenData?.token) {
-      toast.error("Unable to initialize call. Please try again.");
-      return;
-    }
+    // Create channel ID same way as in ChatPage
+    const channelId = [authUser._id, friend._id].sort().join("-");
 
-    try {
-      const client = StreamChat.getInstance(STREAM_API_KEY);
-
-      await client.connectUser(
-        {
-          id: authUser._id,
-          name: authUser.fullName || authUser.username,
-          image: authUser.profilePic,
-        },
-        tokenData.token
-      );
-
-      // Create channel ID same way as in ChatPage
-      const channelId = [authUser._id, friend._id].sort().join("-");
-
-      // Create the call URL
-      const callUrl = `${window.location.origin}/call/${channelId}`;
-
-      // Create a temporary channel to send the message
-      const channel = client.channel("messaging", channelId, {
-        members: [authUser._id, friend._id],
-      });
-
-      await channel.watch();
-
-      // Send the call link message
-      await channel.sendMessage({
-        text: `I've started a video call. Join here: \n ${callUrl}`,
-      });
-
-      // Show success toast with friend's name
-      toast.success(
-        `Video call started! Share this link with ${friend.fullName || friend.username}`
-      );
-      // Open the call in a new window/tab
-      window.open(callUrl, "_blank");
-
-      // Clean up
-      await client.disconnectUser();
-    } catch (error) {
-      console.error("Error starting video call:", error);
-      toast.error("Could not start video call. Please try again.");
-    }
+    // Navigate directly to the call page - it will handle initialization
+    navigate(`/call/${channelId}`);
   };
 
   return (

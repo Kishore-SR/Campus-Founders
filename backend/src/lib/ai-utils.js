@@ -694,6 +694,65 @@ Would you like me to help you find specific types of startups or explain any inv
     };
   }
 
+  // Startup category questions - CHECK BEFORE HELP to catch "What is fintech?" etc.
+  if (
+    /(fintech|edtech|healthtech|ai|ml|blockchain|saas|ecommerce|agritech|iot|climatetech|proptech|foodtech|gaming).*(what|tell|explain|about|is)/.test(
+      lowerQuery
+    ) ||
+    /(what is|tell me about|explain).*(fintech|edtech|healthtech|ai|ml|blockchain|saas|ecommerce|agritech|iot|climatetech|proptech|foodtech|gaming)/.test(
+      lowerQuery
+    )
+  ) {
+    const categoryMap = {
+      fintech:
+        "Financial Technology - Startups using technology to improve financial services, payments, banking, insurance, and investment management.",
+      edtech:
+        "Educational Technology - Companies developing technology solutions for education, learning platforms, online courses, and educational tools.",
+      healthtech:
+        "Health Technology - Startups focused on healthcare innovation, telemedicine, health monitoring, medical devices, and wellness solutions.",
+      ai: "Artificial Intelligence - Companies leveraging AI and machine learning for various applications like automation, predictions, and intelligent systems.",
+      ml: "Machine Learning - Startups using ML algorithms for data analysis, pattern recognition, and predictive modeling.",
+      blockchain:
+        "Blockchain Technology - Companies building on blockchain for cryptocurrencies, smart contracts, decentralized applications, and Web3 solutions.",
+      saas: "Software as a Service - Cloud-based software solutions delivered as subscription services for businesses and consumers.",
+      "e-commerce":
+        "E-Commerce - Online retail platforms, marketplaces, and digital commerce solutions.",
+      agritech:
+        "Agricultural Technology - Startups using technology to improve farming, food production, and agricultural efficiency.",
+      iot: "Internet of Things - Companies developing connected devices and IoT solutions for smart homes, cities, and industries.",
+      climatetech:
+        "Climate Technology - Startups focused on environmental solutions, renewable energy, carbon reduction, and sustainability.",
+      proptech:
+        "Property Technology - Real estate technology solutions for property management, real estate transactions, and smart buildings.",
+      foodtech:
+        "Food Technology - Companies innovating in food production, delivery, alternative proteins, and food safety.",
+      gaming:
+        "Gaming Technology - Game development studios, gaming platforms, esports, and interactive entertainment solutions.",
+    };
+
+    let matchedCategory = "";
+    for (const [cat, desc] of Object.entries(categoryMap)) {
+      if (
+        lowerQuery.includes(cat) ||
+        lowerQuery.includes(cat.replace("-", ""))
+      ) {
+        matchedCategory = cat;
+        break;
+      }
+    }
+
+    if (matchedCategory) {
+      const categoryName =
+        matchedCategory.charAt(0).toUpperCase() + matchedCategory.slice(1);
+      return {
+        response: `**${categoryName}** - ${categoryMap[matchedCategory]}
+
+Want to see ${matchedCategory} startups? Just ask: "Show me ${matchedCategory} startups"`,
+        type: "information",
+      };
+    }
+  }
+
   // Help queries - more comprehensive
   if (
     /(help|how|what|explain|tell me|guide|how do|how can|what is|what are)/.test(
@@ -901,70 +960,6 @@ What would you like to know?`,
 Which feature would you like to learn more about?`,
       type: "information",
     };
-  }
-
-  // Startup category questions
-  if (
-    /(fintech|edtech|healthtech|ai|ml|blockchain|saas|ecommerce|agritech|iot|climatetech|proptech|foodtech|gaming).*(what|tell|explain|about|is)/.test(
-      lowerQuery
-    ) ||
-    /(what is|tell me about|explain).*(fintech|edtech|healthtech|ai|ml|blockchain|saas|ecommerce|agritech|iot|climatetech|proptech|foodtech|gaming)/.test(
-      lowerQuery
-    )
-  ) {
-    const categoryMap = {
-      fintech:
-        "Financial Technology - Startups using technology to improve financial services, payments, banking, insurance, and investment management.",
-      edtech:
-        "Educational Technology - Companies developing technology solutions for education, learning platforms, online courses, and educational tools.",
-      healthtech:
-        "Health Technology - Startups focused on healthcare innovation, telemedicine, health monitoring, medical devices, and wellness solutions.",
-      ai: "Artificial Intelligence - Companies leveraging AI and machine learning for various applications like automation, predictions, and intelligent systems.",
-      ml: "Machine Learning - Startups using ML algorithms for data analysis, pattern recognition, and predictive modeling.",
-      blockchain:
-        "Blockchain Technology - Companies building on blockchain for cryptocurrencies, smart contracts, decentralized applications, and Web3 solutions.",
-      saas: "Software as a Service - Cloud-based software solutions delivered as subscription services for businesses and consumers.",
-      "e-commerce":
-        "E-Commerce - Online retail platforms, marketplaces, and digital commerce solutions.",
-      agritech:
-        "Agricultural Technology - Startups using technology to improve farming, food production, and agricultural efficiency.",
-      iot: "Internet of Things - Companies developing connected devices and IoT solutions for smart homes, cities, and industries.",
-      climatetech:
-        "Climate Technology - Startups focused on environmental solutions, renewable energy, carbon reduction, and sustainability.",
-      proptech:
-        "Property Technology - Real estate technology solutions for property management, real estate transactions, and smart buildings.",
-      foodtech:
-        "Food Technology - Companies innovating in food production, delivery, alternative proteins, and food safety.",
-      gaming:
-        "Gaming Technology - Game development studios, gaming platforms, esports, and interactive entertainment solutions.",
-    };
-
-    let matchedCategory = "";
-    for (const [cat, desc] of Object.entries(categoryMap)) {
-      if (
-        lowerQuery.includes(cat) ||
-        lowerQuery.includes(cat.replace("-", ""))
-      ) {
-        matchedCategory = cat;
-        break;
-      }
-    }
-
-    if (matchedCategory) {
-      return {
-        response: `📚 **${
-          matchedCategory.charAt(0).toUpperCase() + matchedCategory.slice(1)
-        } Explained:**
-
-${categoryMap[matchedCategory]}
-
-**Want to see startups in this category?**
-Just ask me: "Show me ${matchedCategory} startups" and I'll find them for you!
-
-Would you like to explore ${matchedCategory} startups now?`,
-        type: "information",
-      };
-    }
   }
 
   // Startup stage questions

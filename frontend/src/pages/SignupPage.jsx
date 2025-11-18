@@ -25,7 +25,17 @@ const SignUpPage = () => {
     // Remove spaces, special chars, convert to lowercase, add random 3-digit number
     const cleanName = name.replace(/[^a-zA-Z]/g, "");
     const randomNum = Math.floor(100 + Math.random() * 900); // 3-digit number
-    return `${cleanName}${randomNum}`.toLowerCase();
+    const username = `${cleanName}${randomNum}`.toLowerCase();
+    // Truncate to max 20 characters (reasonable limit)
+    return username.length > 20 ? username.substring(0, 20) : username;
+  };
+
+  // Function to truncate username for display
+  const truncateUsername = (username, maxLength = 20) => {
+    if (!username) return "";
+    return username.length > maxLength
+      ? `${username.substring(0, maxLength)}...`
+      : username;
   };
 
   // Auto-generate username when fullName changes
@@ -66,6 +76,18 @@ const SignUpPage = () => {
     // Validate password length before sending request
     if (signupData.password.length < 6) {
       toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    // Validate username length
+    if (signupData.username.length > 20) {
+      toast.error("Username is too long. Please use a shorter name.");
+      return;
+    }
+
+    // Validate full name length
+    if (signupData.fullName.length > 50) {
+      toast.error("Full name is too long. Please use a shorter name.");
       return;
     }
 
@@ -141,7 +163,7 @@ const SignUpPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="form-control w-full">
                         <label className="label">
-                          <span className="label-text">I am a...</span>
+                          <span className="label-text">You are</span>
                         </label>
                         <select
                           className="select select-bordered w-full"
@@ -154,7 +176,7 @@ const SignUpPage = () => {
                           }
                         >
                           <option value="normal">Normal User</option>
-                          <option value="student">Student (Founder)</option>
+                          <option value="student">Student Founder</option>
                           <option value="investor">Investor</option>
                         </select>
                         <p className="text-xs opacity-70 mt-1">
@@ -173,16 +195,24 @@ const SignUpPage = () => {
                           placeholder="John Doe"
                           className="input input-bordered w-full placeholder:opacity-40"
                           value={signupData.fullName}
-                          onChange={(e) =>
-                            setSignupData({
-                              ...signupData,
-                              fullName: e.target.value,
-                            })
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Limit full name to 50 characters
+                            if (value.length <= 50) {
+                              setSignupData({
+                                ...signupData,
+                                fullName: value,
+                              });
+                            }
+                          }}
+                          maxLength={50}
                           required
                         />
                         <p className="text-xs opacity-70 mt-1">
-                          Your username will be: @{signupData.username || "johndoe123"}
+                          Your username will be: @{truncateUsername(signupData.username || "johndoe123", 20)}
+                          {signupData.username && signupData.username.length > 20 && (
+                            <span className="text-warning ml-1">(truncated)</span>
+                          )}
                         </p>
                       </div>
                     </div>

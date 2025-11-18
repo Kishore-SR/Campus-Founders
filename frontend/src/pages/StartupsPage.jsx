@@ -93,6 +93,7 @@ const StartupsPage = () => {
               (upvote) => (upvote._id || upvote)?.toString() === userId
             ) || startup.upvotes?.includes(userId);
 
+            const currentUpvoteCount = startup.upvoteCount ?? startup.upvotes?.length ?? 0;
             return {
               ...startup,
               upvotes: isCurrentlyUpvoted
@@ -102,8 +103,8 @@ const StartupsPage = () => {
                 })
                 : [...(startup.upvotes || []), userId],
               upvoteCount: isCurrentlyUpvoted
-                ? Math.max(0, (startup.upvoteCount || startup.upvotes?.length || 0) - 1)
-                : (startup.upvoteCount || startup.upvotes?.length || 0) + 1,
+                ? Math.max(0, currentUpvoteCount - 1)
+                : currentUpvoteCount + 1,
             };
           }
           return startup;
@@ -123,6 +124,7 @@ const StartupsPage = () => {
                   (upvote) => (upvote._id || upvote)?.toString() === userId
                 ) || startup.upvotes?.includes(userId);
 
+                const currentUpvoteCount = startup.upvoteCount ?? startup.upvotes?.length ?? 0;
                 return {
                   ...startup,
                   upvotes: isCurrentlyUpvoted
@@ -132,8 +134,8 @@ const StartupsPage = () => {
                     })
                     : [...(startup.upvotes || []), userId],
                   upvoteCount: isCurrentlyUpvoted
-                    ? Math.max(0, (startup.upvoteCount || startup.upvotes?.length || 0) - 1)
-                    : (startup.upvoteCount || startup.upvotes?.length || 0) + 1,
+                    ? Math.max(0, currentUpvoteCount - 1)
+                    : currentUpvoteCount + 1,
                 };
               }
               return startup;
@@ -398,7 +400,7 @@ const StartupsPage = () => {
                                 : ""
                                 }`}
                             >
-                              {startup.upvotes?.length || startup.upvoteCount || 0}
+                              {startup.upvoteCount ?? startup.upvotes?.length ?? 0}
                             </span>
                             <span className="text-xs opacity-60">upvotes</span>
                           </div>
