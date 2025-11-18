@@ -9,7 +9,7 @@
 ### Project Links
 
 <p align="center">
-  <a href="https://campusfounder.vercel.app" target="_blank">
+  <a href="https://campusfounders.vercel.app" target="_blank">
     <img src="https://img.shields.io/badge/Live Frontend-00B053?style=for-the-badge&logo=vercel&logoColor=white" />
   </a>
   <a href="https://campus-founders-backend.vercel.app" target="_blank">
@@ -90,8 +90,8 @@
 
 ### 📚 Documentation
 
-- **[SETUP_GUIDE.md](./SETUP_GUIDE.md)** - Complete setup instructions with MongoDB & Stream API guides
-- **[AI_ML_FEATURES.md](./AI_ML_FEATURES.md)** - Comprehensive AI/ML features documentation
+- **[SETUP_GUIDE.md](https://github.com/Kishore-SR/Campus-Founders/blob/main/docs/SETUP_GUIDE.md)** - Complete setup instructions with MongoDB & Stream API guides
+- **[AI_ML_FEATURES.md](https://github.com/Kishore-SR/Campus-Founders/blob/main/docs/AI_ML_FEATURES.md)** - Comprehensive AI/ML features documentation
 
 ### 🚀 Quick Start
 
@@ -114,7 +114,7 @@ npm install
 npm run dev
 ```
 
-See [SETUP_GUIDE.md](./SETUP_GUIDE.md) for detailed setup instructions.
+See [SETUP_GUIDE.md](https://github.com/Kishore-SR/Campus-Founders/blob/main/docs/SETUP_GUIDE.md) for detailed setup instructions.
 
 ### 🎓 Academic Project
 
