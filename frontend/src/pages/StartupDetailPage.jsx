@@ -384,13 +384,20 @@ const StartupDetailPage = () => {
 
                         if (connectionStatus === "connected") {
                           return (
-                            <Link
-                              to={`/chat/${startup.owner?._id}`}
+                            <button
+                              onClick={() => {
+                                if (!authUser?.isPremium) {
+                                  toast.error("Premium subscription required for chat");
+                                  navigate("/premium");
+                                } else {
+                                  navigate(`/chat/${startup.owner?._id}`);
+                                }
+                              }}
                               className="btn btn-primary btn-sm"
                             >
                               <MessageSquareIcon className="size-4 mr-2" />
                               Message
-                            </Link>
+                            </button>
                           );
                         } else if (connectionStatus === "pending" || isSending) {
                           return (
@@ -424,11 +431,15 @@ const StartupDetailPage = () => {
                   {startup.owner && (
                     <div className="flex items-center gap-3 px-4 py-2 bg-base-300 rounded-lg">
                       <div className="avatar">
-                        <div className="w-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1">
+                        <div className="w-12 h-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
                           {startup.owner.profilePic && startup.owner.profilePic.trim() ? (
-                            <img src={startup.owner.profilePic} alt={startup.owner.fullName} />
+                            <img
+                              src={startup.owner.profilePic}
+                              alt={startup.owner.fullName}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                            <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg w-full h-full">
                               {startup.owner.fullName?.charAt(0) || startup.owner.username?.charAt(0) || "U"}
                             </div>
                           )}
@@ -491,6 +502,72 @@ const StartupDetailPage = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Company Registration Details */}
+        {(startup.mobileNumber || startup.companyRegisteredLocation || startup.companyType || startup.fundingRound || startup.numberOfEmployees || startup.companyContactInfo) && (
+          <div className="card bg-base-200 shadow-xl">
+            <div className="card-body">
+              <h2 className="text-2xl font-bold mb-4">Company Registration Details</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {startup.mobileNumber && (
+                  <div className="p-3 bg-base-300 rounded-lg">
+                    <p className="text-sm opacity-70">Mobile Number</p>
+                    <p className="font-semibold">{startup.mobileNumber}</p>
+                  </div>
+                )}
+                {startup.companyRegisteredLocation && (
+                  <div className="p-3 bg-base-300 rounded-lg">
+                    <p className="text-sm opacity-70">Registered Location</p>
+                    <p className="font-semibold">{startup.companyRegisteredLocation}</p>
+                  </div>
+                )}
+                {startup.companyType && (
+                  <div className="p-3 bg-base-300 rounded-lg">
+                    <p className="text-sm opacity-70">Company Type</p>
+                    <p className="font-semibold capitalize">{startup.companyType}</p>
+                  </div>
+                )}
+                {startup.fundingRound && (
+                  <div className="p-3 bg-base-300 rounded-lg">
+                    <p className="text-sm opacity-70">Funding Round</p>
+                    <p className="font-semibold capitalize">{startup.fundingRound}</p>
+                  </div>
+                )}
+                {startup.numberOfEmployees !== undefined && startup.numberOfEmployees !== null && (
+                  <div className="p-3 bg-base-300 rounded-lg">
+                    <p className="text-sm opacity-70">Team Size</p>
+                    <p className="font-semibold">{startup.numberOfEmployees} {startup.numberOfEmployees === 1 ? "employee" : "employees"}</p>
+                  </div>
+                )}
+              </div>
+              {startup.companyContactInfo && (startup.companyContactInfo.email || startup.companyContactInfo.phone || startup.companyContactInfo.address) && (
+                <div className="mt-4 pt-4 border-t border-base-300">
+                  <h4 className="font-semibold mb-3">Contact Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {startup.companyContactInfo.email && (
+                      <div className="p-3 bg-base-300 rounded-lg">
+                        <p className="text-sm opacity-70">Email</p>
+                        <p className="font-semibold">{startup.companyContactInfo.email}</p>
+                      </div>
+                    )}
+                    {startup.companyContactInfo.phone && (
+                      <div className="p-3 bg-base-300 rounded-lg">
+                        <p className="text-sm opacity-70">Phone</p>
+                        <p className="font-semibold">{startup.companyContactInfo.phone}</p>
+                      </div>
+                    )}
+                    {startup.companyContactInfo.address && (
+                      <div className="p-3 bg-base-300 rounded-lg md:col-span-2">
+                        <p className="text-sm opacity-70">Address</p>
+                        <p className="font-semibold">{startup.companyContactInfo.address}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -640,18 +717,22 @@ const StartupDetailPage = () => {
 
             {/* Reviews List */}
             {reviews && reviews.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reviews.map((review) => (
                   <div key={review._id} className="card bg-base-300">
                     <div className="card-body p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <div className="avatar">
-                            <div className="w-10 rounded-full">
+                            <div className="w-10 h-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
                               {review.user?.profilePic && review.user.profilePic.trim() ? (
-                                <img src={review.user.profilePic} alt={review.user.fullName} />
+                                <img
+                                  src={review.user.profilePic}
+                                  alt={review.user.fullName}
+                                  className="w-full h-full object-cover"
+                                />
                               ) : (
-                                <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                                <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm w-full h-full">
                                   {review.user?.fullName?.charAt(0) || review.user?.username?.charAt(0) || "U"}
                                 </div>
                               )}

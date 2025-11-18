@@ -1,22 +1,39 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import useAuthUser from "../hooks/useAuthUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { completeOnboarding } from "../lib/api.js";
 import {
-  CameraIcon,
   LoaderIcon,
   MapPinIcon,
   ShipWheelIcon,
-  ShuffleIcon,
+  Upload,
+  X,
 } from "lucide-react";
 import { STARTUP_DOMAINS } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
 
+// Get initials from name (first letter of first name + first letter of last name)
+const getInitials = (name) => {
+  if (!name) return "U";
+  const parts = name.trim().split(" ").filter(part => part.length > 0);
+  if (parts.length >= 2) {
+    const firstInitial = parts[0]?.[0]?.toUpperCase() || "";
+    const lastInitial = parts[parts.length - 1]?.[0]?.toUpperCase() || "";
+    return (firstInitial + lastInitial) || "U";
+  }
+  if (parts.length === 1 && parts[0].length >= 2) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase() || "U";
+};
+
 const OnboardingPage = () => {
   const { authUser } = useAuthUser();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef(null);
+
   const [formState, setFormState] = useState({
     bio: authUser?.bio || "",
     interestedDomain: authUser?.nativeLanguage || "", // Using nativeLanguage field for interestedDomain
@@ -24,6 +41,8 @@ const OnboardingPage = () => {
     profilePic: authUser?.profilePic || "",
     role: authUser?.role || "normal", // Role comes from signup, not editable
   });
+
+  const [previewImage, setPreviewImage] = useState(authUser?.profilePic || "");
 
   const { mutate: onboardingMutation, isPending } = useMutation({
     mutationFn: completeOnboarding,
@@ -33,23 +52,59 @@ const OnboardingPage = () => {
     },
 
     onError: (error) => {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to complete onboarding");
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Validate that profile pic is provided
+    if (!formState.profilePic || !formState.profilePic.trim()) {
+      toast.error("Please upload a profile picture");
+      return;
+    }
+
     onboardingMutation(formState);
   };
 
-  const handleRandomAvatar = () => {
-    const idx = Math.floor(Math.random() * 100) + 1; // 1-100 included
-    const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setFormState({ ...formState, profilePic: randomAvatar });
-    toast.success("Random profile picture generated!");
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setFormState({ ...formState, profilePic: base64String });
+      setPreviewImage(base64String);
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read image file");
+    };
+    reader.readAsDataURL(file);
   };
+
+  const handleRemoveImage = () => {
+    setFormState({ ...formState, profilePic: "" });
+    setPreviewImage("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const { theme } = useThemeStore();
 
   return (
@@ -89,32 +144,66 @@ const OnboardingPage = () => {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* PROFILE PIC CONTAINER */}
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  {/* IMAGE PREVIEW */}
-                  <div className="size-32 rounded-full bg-base-300 overflow-hidden">
-                    {formState.profilePic ? (
-                      <img
-                        src={formState.profilePic}
-                        alt="Profile Preview"
-                        className="w-full h-full object-cover"
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text flex items-center gap-2">
+                      <Upload className="size-4" />
+                      Profile Picture <span className="text-error">*</span>
+                    </span>
+                  </label>
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    {/* IMAGE PREVIEW */}
+                    <div className="size-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                      {previewImage ? (
+                        <img
+                          src={previewImage}
+                          alt="Profile Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-3xl w-full h-full">
+                          <span className="flex items-center justify-center w-full h-full">
+                            {getInitials(authUser?.fullName || authUser?.username || "U")}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {/* File Upload Input */}
+                    <div className="w-full max-w-md">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="file-input file-input-bordered w-full"
+                        disabled={isPending}
+                        required
                       />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <CameraIcon className="size-12 text-base-content opacity-40" />
-                      </div>
-                    )}
+                      <label className="label">
+                        <span className="label-text-alt opacity-70">
+                          Supported: JPG, PNG, GIF (Max 5MB)
+                        </span>
+                      </label>
+                      {previewImage && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="btn btn-sm btn-ghost mt-2"
+                          disabled={isPending}
+                        >
+                          <X className="size-4 mr-1" />
+                          Remove Image
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {/* Generate Random Avatar BTN */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleRandomAvatar}
-                      className="btn btn-accent"
-                    >
-                      <ShuffleIcon className="size-4 mr-2" />
-                      Generate Random Avatar
-                    </button>
-                  </div>{" "}
+                  {!previewImage && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">
+                        Profile picture is required
+                      </span>
+                    </label>
+                  )}
                 </div>
 
                 {/* USERNAME DISPLAY */}

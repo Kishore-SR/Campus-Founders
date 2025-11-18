@@ -80,6 +80,67 @@ const startupSchema = new mongoose.Schema(
         linkedinUrl: String,
       },
     ],
+    // Company Registration Details
+    mobileNumber: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    companyRegisteredLocation: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    companyType: {
+      type: String,
+      enum: [
+        "startup",
+        "msme",
+        "llp",
+        "private limited",
+        "public limited",
+        "partnership",
+        "sole proprietorship",
+        "other",
+      ],
+      default: "startup",
+    },
+    fundingRound: {
+      type: String,
+      enum: [
+        "pre-seed",
+        "seed",
+        "series a",
+        "series b",
+        "series c",
+        "series d+",
+        "bootstrapped",
+        "not funded",
+      ],
+      default: "not funded",
+    },
+    numberOfEmployees: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    companyContactInfo: {
+      email: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      phone: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      address: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+    },
     // Metrics
     revenue: {
       type: Number,

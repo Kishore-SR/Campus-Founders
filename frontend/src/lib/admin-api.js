@@ -57,3 +57,11 @@ export const rejectInvestor = async (id, reason) => {
   });
   return response.data;
 };
+
+// Delete user completely
+export const deleteUser = async (id, password) => {
+  const response = await axiosInstance.delete(`/admin/users/${id}`, {
+    data: { password },
+  });
+  return response.data;
+};

@@ -230,11 +230,18 @@ const StartupsPage = () => {
                             <div className="flex items-center gap-2 text-sm opacity-70">
                               <span>by</span>
                               <div className="avatar">
-                                <div className="w-6 rounded-full">
-                                  <img
-                                    src={startup.owner.profilePic}
-                                    alt={startup.owner.username}
-                                  />
+                                <div className="w-6 h-6 rounded-full overflow-hidden">
+                                  {startup.owner.profilePic && startup.owner.profilePic.trim() ? (
+                                    <img
+                                      src={startup.owner.profilePic}
+                                      alt={startup.owner.username}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xs w-full h-full">
+                                      {startup.owner.fullName?.charAt(0) || startup.owner.username?.charAt(0) || "U"}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               <span className="font-semibold">

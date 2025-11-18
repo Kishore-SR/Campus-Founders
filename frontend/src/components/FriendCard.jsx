@@ -13,11 +13,11 @@ const FriendCard = ({ friend }) => {
     const userRole = role || friend.role || "normal";
     switch (userRole) {
       case "student":
-        return { label: "🎓 Founder", badge: "badge-accent" };
+        return { label: "🎓 Founder", badgeClass: "badge-accent" };
       case "investor":
-        return { label: "💼 Investor", badge: "badge-info" };
+        return { label: "💼 Investor", badgeClass: "badge-info" };
       default:
-        return { label: "👤 Member", badge: "badge-ghost" };
+        return { label: "👤 Member", badgeClass: "badge-primary" };
     }
   };
 
@@ -28,27 +28,39 @@ const FriendCard = ({ friend }) => {
       <div className="card-body p-4">
         {/* USER INFO */}
         <div className="flex items-center gap-3 mb-3">
-          <div className="avatar size-12">
-            <img src={friend.profilePic} alt={`@${friend.username}`} />
-          </div>
-          <div className="flex-1 flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold truncate font-mono">
-              @{friend.username}
-            </h3>
-            <div className={`badge badge-sm ${profileInfo.badge}`}>
-              {profileInfo.label}
+          <div className="avatar">
+            <div className="w-12 h-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
+              {friend.profilePic && friend.profilePic.trim() ? (
+                <img
+                  src={friend.profilePic}
+                  alt={friend.fullName || friend.username}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm w-full h-full">
+                  {friend.fullName?.charAt(0) || friend.username?.charAt(0) || "U"}
+                </div>
+              )}
             </div>
           </div>
+          <div className="flex-1">
+            <h3 className="font-semibold truncate">
+              {friend.fullName || friend.username}
+            </h3>
+          </div>
         </div>
-        {/* Only show Focus, not Track */}
-        {friend.currentFocus && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+        {/* Role badge and Focus on same line */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          <span className={`badge ${profileInfo.badgeClass} text-xs`}>
+            {profileInfo.label}
+          </span>
+          {friend.currentFocus && (
             <span className="badge badge-secondary text-xs">
               {getLanguageFlag(friend.currentFocus)}
-              Focus: {friend.currentFocus}
+              <span className="font-bold">Focus</span>: {friend.currentFocus}
             </span>
-          </div>
-        )}
+          )}
+        </div>
         <Link to={`/chat/${friend._id}`} className="btn btn-success btn-sm">
           <MessageSquareIcon className="h-4 w-4 mr-1" />
           Message

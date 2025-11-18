@@ -153,10 +153,28 @@ const HomePage = () => {
     return "Connect with passionate founders and investors below and build strong bonds!";
   };
 
-  const getRecommendedTitle = () => {
-    if (authUser?.role === "student") return "Discover Investors";
-    if (authUser?.role === "investor") return "Discover Founders";
-    return "Discover Community";
+  // Helper to get sections based on user role
+  const getDiscoverSections = () => {
+    if (authUser?.role === "student") {
+      return [
+        { role: "investor", title: "Discover Investors", description: "Connect with investors who can help fund your vision" },
+        { role: "student", title: "Discover Founders", description: "Connect with other student founders" },
+        { role: "normal", title: "Discover Members", description: "Connect with community members" },
+      ];
+    }
+    if (authUser?.role === "investor") {
+      return [
+        { role: "student", title: "Discover Founders", description: "Connect with innovative student founders" },
+        { role: "investor", title: "Discover Investors", description: "Connect with other investors" },
+        { role: "normal", title: "Discover Members", description: "Connect with community members" },
+      ];
+    }
+    // For members/normal users
+    return [
+      { role: "student", title: "Discover Founders", description: "Connect with student founders" },
+      { role: "investor", title: "Discover Investors", description: "Connect with investors" },
+      { role: "normal", title: "Discover Members", description: "Connect with other community members" },
+    ];
   };
 
   const { data: friends = [], isLoading: loadingFriends } = useQuery({
@@ -384,177 +402,189 @@ const HomePage = () => {
           </section>
         )}
 
-        <section>
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                {" "}
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                  {getRecommendedTitle()}
-                </h2>
-                <p className="opacity-70">
-                  Connect with {authUser?.role === "student" ? "investors who can help fund your vision" : authUser?.role === "investor" ? "innovative student founders" : "founders and investors"} aligned with your vision
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Dynamic Discover Sections based on profile type */}
+        {getDiscoverSections().map((section) => {
+          // Filter users by role and basic requirements
+          const filteredUsers = recommendedUsers.filter(
+            (user) =>
+              user &&
+              user._id &&
+              user.username &&
+              user.profilePic &&
+              user.role === section.role &&
+              user._id !== authUser?._id && // Exclude current user
+              user.currentFocus
+          );
 
-          {loadingUsers ? (
-            <div className="flex justify-center py-12">
-              <span className="loading loading-spinner loading-lg" />
-            </div>
-          ) : (() => {
-            const filteredUsers = recommendedUsers.filter(
-              (user) =>
-                user &&
-                user._id &&
-                user.username &&
-                user.profilePic &&
-                user.currentFocus
-            );
-            return filteredUsers.length === 0 ? (
-              <div className="card bg-base-200 p-8 sm:p-12 text-center border-2 border-dashed border-base-content/20">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="rounded-full bg-base-300 p-6">
-                    <SearchIcon className="size-12 text-base-content/40" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-xl mb-2">
-                      No founders found at the moment
-                    </h3>
-                    <p className="text-base-content opacity-70 max-w-md mx-auto">
-                      {authUser?.role === "investor"
-                        ? "Connect with innovative student founders aligned with your vision. Check back later for new recommendations!"
-                        : authUser?.role === "student"
-                          ? "Connect with investors who can help fund your vision. Check back later for new recommendations!"
-                          : "Connect with founders and investors aligned with your vision. Check back later for new recommendations!"}
+          // Skip empty sections
+          if (filteredUsers.length === 0 && !loadingUsers) {
+            return null;
+          }
+
+          return (
+            <section key={section.role}>
+              <div className="mb-6 sm:mb-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                      {section.title}
+                    </h2>
+                    <p className="opacity-70">
+                      {section.description}
                     </p>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredUsers.map((user) => {
-                  const hasRequestBeenSent = outgoingRequestsIds.has(user._id);
-                  const incomingRequestId = incomingRequestsMap.get(user._id);
-                  const hasIncomingRequest = !!incomingRequestId;
 
-                  return (
-                    <div
-                      key={user._id}
-                      className="card bg-base-200 hover:shadow-lg transition-all duration-300"
-                    >
-                      <div className="card-body p-5 space-y-4">
-                        {" "}
-                        <div className="flex items-center gap-3">
-                          <div className="avatar size-16 rounded-full">
-                            <img
-                              src={user.profilePic}
-                              alt={`@${user.username}`}
-                            />
-                          </div>{" "}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-semibold text-lg font-mono">
-                                @{user.username}
-                              </h3>
-                              {(() => {
-                                const getProfileLabel = (role) => {
-                                  // Ensure we have a role value
-                                  const userRole = role || user.role || "normal";
-                                  switch (userRole) {
-                                    case "student":
-                                      return { label: "🎓 Founder", badge: "badge-accent" };
-                                    case "investor":
-                                      return { label: "💼 Investor", badge: "badge-info" };
-                                    default:
-                                      return { label: "👤 Member", badge: "badge-ghost" };
-                                  }
-                                };
-                                const profileInfo = getProfileLabel(user.role);
-                                return (
-                                  <div className={`badge ${profileInfo.badge} badge-sm`}>
-                                    {profileInfo.label}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                            {user.location && (
-                              <div className="flex items-center text-xs opacity-70 mt-1">
-                                <MapPinIcon className="size-3 mr-1" />
-                                {user.location}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        {/* Only show Focus, not Track */}
-                        {user.currentFocus && (
-                          <div className="flex flex-wrap gap-1.5">
-                            <span className="badge badge-secondary">
-                              {getLanguageFlag(user.currentFocus)}
-                              Focus:{" "}
-                              {capitialize(user.currentFocus)}
-                            </span>
-                          </div>
-                        )}
-                        {user.bio && (
-                          <div className="border-l-2 border-base-300 pl-3">
-                            <p className="text-sm opacity-70 line-clamp-2">
-                              {user.bio}
-                            </p>
-                          </div>
-                        )}{" "}
-                        {/* Action button */}
-                        {hasIncomingRequest ? (
-                          <button
-                            className="btn btn-accent w-full mt-2"
-                            onClick={() =>
-                              acceptRequestMutation(incomingRequestId)
-                            }
-                            disabled={acceptingRequestIds.has(
-                              incomingRequestId
-                            )}
-                          >
-                            <UserCheckIcon className="size-4 mr-2" />
-                            {acceptingRequestIds.has(incomingRequestId)
-                              ? "Accepting..."
-                              : "Accept Request"}
-                          </button>
-                        ) : (
-                          <button
-                            className={`btn w-full mt-2 ${hasRequestBeenSent
-                              ? "btn-disabled"
-                              : "btn-primary"
-                              }`}
-                            onClick={() => sendRequestMutation(user._id)}
-                            disabled={
-                              hasRequestBeenSent ||
-                              sendingRequestIds.has(user._id)
-                            }
-                          >
-                            {hasRequestBeenSent ? (
-                              <>
-                                <CheckCircleIcon className="size-4 mr-2" />
-                                Request Sent
-                              </>
-                            ) : (
-                              <>
-                                <UserPlusIcon className="size-4 mr-2" />
-                                {sendingRequestIds.has(user._id)
-                                  ? "Sending..."
-                                  : "Send Friend Request"}
-                              </>
-                            )}
-                          </button>
-                        )}
-                      </div>
+              {loadingUsers ? (
+                <div className="flex justify-center py-12">
+                  <span className="loading loading-spinner loading-lg" />
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="card bg-base-200 p-8 sm:p-12 text-center border-2 border-dashed border-base-content/20">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="rounded-full bg-base-300 p-6">
+                      <SearchIcon className="size-12 text-base-content/40" />
                     </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </section>
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-xl mb-2">
+                        No {section.role === "investor" ? "investors" : section.role === "student" ? "founders" : "members"} found at the moment
+                      </h3>
+                      <p className="text-base-content opacity-70 max-w-md mx-auto">
+                        {section.description}. Check back later for new recommendations!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredUsers.map((user) => {
+                    const hasRequestBeenSent = outgoingRequestsIds.has(user._id);
+                    const incomingRequestId = incomingRequestsMap.get(user._id);
+                    const hasIncomingRequest = !!incomingRequestId;
+
+                    return (
+                      <div
+                        key={user._id}
+                        className="card bg-base-200 hover:shadow-lg transition-all duration-300"
+                      >
+                        <div className="card-body p-5 space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className="avatar">
+                              <div className="w-16 h-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                                {user.profilePic && user.profilePic.trim() ? (
+                                  <img
+                                    src={user.profilePic}
+                                    alt={user.fullName || user.username}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xl w-full h-full">
+                                    {user.fullName?.charAt(0) || user.username?.charAt(0) || "U"}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg">
+                                {user.fullName || user.username}
+                              </h3>
+                            </div>
+                          </div>
+                          {/* Role badge and Focus on same line */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {(() => {
+                              const getProfileLabel = (role) => {
+                                const userRole = role || user.role || "normal";
+                                switch (userRole) {
+                                  case "student":
+                                    return { label: "🎓 Founder", badgeClass: "badge-accent" };
+                                  case "investor":
+                                    return { label: "💼 Investor", badgeClass: "badge-info" };
+                                  default:
+                                    return { label: "👤 Member", badgeClass: "badge-primary" };
+                                }
+                              };
+                              const profileInfo = getProfileLabel(user.role);
+                              return (
+                                <span className={`badge ${profileInfo.badgeClass} text-xs`}>
+                                  {profileInfo.label}
+                                </span>
+                              );
+                            })()}
+                            {user.currentFocus && (
+                              <span className="badge badge-secondary text-xs">
+                                {getLanguageFlag(user.currentFocus)}
+                                <span className="font-bold">Focus</span>:{" "}
+                                {capitialize(user.currentFocus)}
+                              </span>
+                            )}
+                          </div>
+                          {user.location && (
+                            <div className="flex items-center text-xs opacity-70">
+                              <MapPinIcon className="size-3 mr-1" />
+                              {user.location}
+                            </div>
+                          )}
+                          {user.bio && (
+                            <div className="border-l-2 border-base-300 pl-3">
+                              <p className="text-sm opacity-70 line-clamp-2">
+                                {user.bio}
+                              </p>
+                            </div>
+                          )}
+                          {/* Action button */}
+                          {hasIncomingRequest ? (
+                            <button
+                              className="btn btn-accent w-full mt-2"
+                              onClick={() =>
+                                acceptRequestMutation(incomingRequestId)
+                              }
+                              disabled={acceptingRequestIds.has(
+                                incomingRequestId
+                              )}
+                            >
+                              <UserCheckIcon className="size-4 mr-2" />
+                              {acceptingRequestIds.has(incomingRequestId)
+                                ? "Accepting..."
+                                : "Accept Request"}
+                            </button>
+                          ) : (
+                            <button
+                              className={`btn w-full mt-2 ${hasRequestBeenSent
+                                ? "btn-disabled"
+                                : "btn-primary"
+                                }`}
+                              onClick={() => sendRequestMutation(user._id)}
+                              disabled={
+                                hasRequestBeenSent ||
+                                sendingRequestIds.has(user._id)
+                              }
+                            >
+                              {hasRequestBeenSent ? (
+                                <>
+                                  <CheckCircleIcon className="size-4 mr-2" />
+                                  Request Sent
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlusIcon className="size-4 mr-2" />
+                                  {sendingRequestIds.has(user._id)
+                                    ? "Sending..."
+                                    : "Send Friend Request"}
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

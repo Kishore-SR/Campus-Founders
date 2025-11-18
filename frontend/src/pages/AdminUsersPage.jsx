@@ -1,20 +1,63 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getAllUsers } from "../lib/admin-api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAllUsers, deleteUser } from "../lib/admin-api";
 import { Helmet } from "react-helmet-async";
 import { useThemeStore } from "../store/useThemeStore";
-import { Users, Search, Filter, Shield, Briefcase, GraduationCap, User } from "lucide-react";
+import { Users, Search, Filter, Shield, Briefcase, GraduationCap, User, Trash2 } from "lucide-react";
 import PageLoader from "../components/PageLoader";
+import toast from "react-hot-toast";
 
 const AdminUsersPage = () => {
   const { theme } = useThemeStore();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    userId: null,
+    userName: "",
+    password: "",
+  });
 
   const { data: response, isLoading } = useQuery({
     queryKey: ["adminUsers"],
     queryFn: getAllUsers,
   });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: ({ userId, password }) => deleteUser(userId, password),
+    onSuccess: () => {
+      toast.success("User and all related data deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
+      setDeleteModal({ isOpen: false, userId: null, userName: "", password: "" });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to delete user");
+      if (error.response?.status !== 401) {
+        setDeleteModal({ isOpen: false, userId: null, userName: "", password: "" });
+      }
+    },
+  });
+
+  const handleDeleteClick = (user) => {
+    setDeleteModal({
+      isOpen: true,
+      userId: user._id,
+      userName: user.fullName || user.username,
+      password: "",
+    });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteModal.password) {
+      toast.error("Please enter the password");
+      return;
+    }
+    deleteUserMutation.mutate({
+      userId: deleteModal.userId,
+      password: deleteModal.password,
+    });
+  };
 
   if (isLoading) return <PageLoader />;
 
@@ -185,12 +228,13 @@ const AdminUsersPage = () => {
                     <th>Role</th>
                     <th>Location</th>
                     <th>Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="text-center opacity-70">
+                      <td colSpan="6" className="text-center opacity-70">
                         No users found
                       </td>
                     </tr>
@@ -200,11 +244,15 @@ const AdminUsersPage = () => {
                         <td>
                           <div className="flex items-center gap-3">
                             <div className="avatar">
-                              <div className="w-10 h-10 rounded-full">
+                              <div className="w-10 h-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
                                 {user.profilePic && user.profilePic.trim() ? (
-                                  <img src={user.profilePic} alt={user.fullName} />
+                                  <img
+                                    src={user.profilePic}
+                                    alt={user.fullName}
+                                    className="w-full h-full object-cover"
+                                  />
                                 ) : (
-                                  <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                                  <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm w-full h-full">
                                     {user.fullName?.charAt(0) || user.username?.charAt(0) || "U"}
                                   </div>
                                 )}
@@ -242,6 +290,15 @@ const AdminUsersPage = () => {
                             </div>
                           )}
                         </td>
+                        <td>
+                          <button
+                            onClick={() => handleDeleteClick(user)}
+                            className="btn btn-error btn-sm btn-outline"
+                            title="Delete user"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -251,6 +308,71 @@ const AdminUsersPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete User Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg mb-4">Delete User</h3>
+              <p className="mb-4">
+                Are you sure you want to permanently delete{" "}
+                <span className="font-semibold">{deleteModal.userName}</span>?
+              </p>
+              <p className="text-sm text-error mb-4">
+                This will remove the user and all their data including startups,
+                investments, reviews, and connections. This action cannot be undone.
+              </p>
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Enter password to confirm:</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="input input-bordered"
+                  value={deleteModal.password}
+                  onChange={(e) =>
+                    setDeleteModal({ ...deleteModal, password: e.target.value })
+                  }
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleDeleteConfirm();
+                    }
+                  }}
+                />
+              </div>
+              <div className="modal-action">
+                <button
+                  className="btn"
+                  onClick={() =>
+                    setDeleteModal({
+                      isOpen: false,
+                      userId: null,
+                      userName: "",
+                      password: "",
+                    })
+                  }
+                  disabled={deleteUserMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-error"
+                  onClick={handleDeleteConfirm}
+                  disabled={deleteUserMutation.isPending}
+                >
+                  {deleteUserMutation.isPending ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : (
+                    "Remove"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -52,21 +52,19 @@ export async function signup(req, res) {
         .json({ message: "Username already taken, please try another one" });
     }
 
-    const idx = Math.floor(Math.random() * 100) + 1;
-    const randomAvatrar = `https://avatar.iran.liara.run/public/${idx}.png`;
     const newUser = await User.create({
       email,
       password,
       username,
       fullName: fullName || "", // Include fullName if provided
-      profilePic: randomAvatrar,
+      profilePic: "", // Profile pic will be set during onboarding
       role: role || "normal", // Default to 'normal' if not provided
     });
 
     try {
       await upsertStreamUser({
         id: newUser._id.toString(),
-        name: username,
+        name: newUser.fullName || username,
         image: newUser.profilePic || "",
       });
       console.log(`Stream user created for "@${newUser.username}"`);
@@ -196,17 +194,37 @@ export async function onboard(req, res) {
   try {
     const userId = req.user._id;
 
-    const { bio, nativeLanguage, learningLanguage, location, role } = req.body;
+    const {
+      bio,
+      nativeLanguage,
+      learningLanguage,
+      location,
+      role,
+      profilePic,
+    } = req.body;
 
-    // Required fields: bio, interestedDomain (nativeLanguage), and location
-    if (!bio || !nativeLanguage || !location) {
+    // Required fields: bio, interestedDomain (nativeLanguage), location, and profilePic
+    if (!bio || !nativeLanguage || !location || !profilePic) {
       return res.status(400).json({
-        message: "All required fields must be filled",
+        message: "All required fields must be filled including profile picture",
         missingFields: [
           !bio && "bio",
           !nativeLanguage && "interestedDomain",
           !location && "location",
+          !profilePic && "profilePic",
         ].filter(Boolean),
+      });
+    }
+
+    // Validate profilePic format if provided
+    if (
+      profilePic &&
+      !profilePic.startsWith("data:image/") &&
+      !profilePic.startsWith("http")
+    ) {
+      return res.status(400).json({
+        message:
+          "Invalid profile picture format. Must be a data URL or HTTP URL",
       });
     }
 
@@ -217,14 +235,22 @@ export async function onboard(req, res) {
       });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        ...req.body,
-        isOnboarded: true,
-      },
-      { new: true }
-    );
+    const updateData = {
+      bio: bio.trim(),
+      nativeLanguage: nativeLanguage.trim(),
+      learningLanguage: learningLanguage?.trim() || "",
+      location: location.trim(),
+      profilePic: profilePic.trim(),
+      isOnboarded: true,
+    };
+
+    if (role) {
+      updateData.role = role;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -232,7 +258,7 @@ export async function onboard(req, res) {
     try {
       await upsertStreamUser({
         id: updatedUser._id.toString(),
-        name: updatedUser.username,
+        name: updatedUser.fullName || updatedUser.username,
         image: updatedUser.profilePic || "",
       });
       console.log(`Stream user updated for "@${updatedUser.username}"`);

@@ -73,25 +73,50 @@ const NotificationsPage = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               {" "}
-                              <div className="avatar w-14 h-14 rounded-full bg-base-300">
-                                <img
-                                  src={request.sender.profilePic}
-                                  alt={`@${request.sender.username}`}
-                                />
+                              <div className="avatar">
+                                <div className="w-14 h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
+                                  {request.sender.profilePic && request.sender.profilePic.trim() ? (
+                                    <img
+                                      src={request.sender.profilePic}
+                                      alt={request.sender.fullName || request.sender.username}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold w-full h-full">
+                                      {request.sender.fullName?.charAt(0) || request.sender.username?.charAt(0) || "U"}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                               <div>
-                                <h3 className="font-semibold font-mono">
-                                  @{request.sender.username}
+                                <h3 className="font-semibold mb-1">
+                                  {request.sender.fullName || request.sender.username}
                                 </h3>
-                                <div className="flex flex-wrap gap-1.5 mt-1">
-                                  <span className="badge badge-secondary badge-sm">
-                                    Focus:{" "}
-                                    {request.sender.currentFocus || "Unknown"}
-                                  </span>
-                                  <span className="badge badge-outline badge-sm">
-                                    Track:{" "}
-                                    {request.sender.skillTrack || "Unknown"}
-                                  </span>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {(() => {
+                                    const getProfileLabel = (role) => {
+                                      const userRole = role || request.sender.role || "normal";
+                                      switch (userRole) {
+                                        case "student":
+                                          return { label: "🎓 Founder", badgeClass: "badge-accent" };
+                                        case "investor":
+                                          return { label: "💼 Investor", badgeClass: "badge-info" };
+                                        default:
+                                          return { label: "👤 Member", badgeClass: "badge-primary" };
+                                      }
+                                    };
+                                    const profileInfo = getProfileLabel(request.sender.role);
+                                    return (
+                                      <span className={`badge ${profileInfo.badgeClass} text-xs`}>
+                                        {profileInfo.label}
+                                      </span>
+                                    );
+                                  })()}
+                                  {request.sender.currentFocus && (
+                                    <span className="badge badge-secondary text-xs">
+                                      <span className="font-bold">Focus</span>: {request.sender.currentFocus}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -151,20 +176,51 @@ const NotificationsPage = () => {
                               {/* User info section */}
                               <div className="flex gap-3">
                                 <div className="avatar">
-                                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full">
-                                    {" "}
-                                    <img
-                                      src={notification.recipient.profilePic}
-                                      alt={notification.recipient.username}
-                                      className="object-cover"
-                                    />
+                                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
+                                    {notification.recipient.profilePic && notification.recipient.profilePic.trim() ? (
+                                      <img
+                                        src={notification.recipient.profilePic}
+                                        alt={notification.recipient.fullName || notification.recipient.username}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold w-full h-full">
+                                        {notification.recipient.fullName?.charAt(0) || notification.recipient.username?.charAt(0) || "U"}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 <div className="flex-1">
                                   {" "}
-                                  <h3 className="font-semibold font-mono">
-                                    @{notification.recipient.username}
+                                  <h3 className="font-semibold mb-1">
+                                    {notification.recipient.fullName || notification.recipient.username}
                                   </h3>
+                                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                    {(() => {
+                                      const getProfileLabel = (role) => {
+                                        const userRole = role || notification.recipient.role || "normal";
+                                        switch (userRole) {
+                                          case "student":
+                                            return { label: "🎓 Founder", badgeClass: "badge-accent" };
+                                          case "investor":
+                                            return { label: "💼 Investor", badgeClass: "badge-info" };
+                                          default:
+                                            return { label: "👤 Member", badgeClass: "badge-primary" };
+                                        }
+                                      };
+                                      const profileInfo = getProfileLabel(notification.recipient.role);
+                                      return (
+                                        <span className={`badge ${profileInfo.badgeClass} text-xs`}>
+                                          {profileInfo.label}
+                                        </span>
+                                      );
+                                    })()}
+                                    {notification.recipient.currentFocus && (
+                                      <span className="badge badge-secondary text-xs">
+                                        <span className="font-bold">Focus</span>: {notification.recipient.currentFocus}
+                                      </span>
+                                    )}
+                                  </div>
                                   <p className="text-sm my-1">
                                     Accepted your friend request
                                   </p>

@@ -3,8 +3,9 @@ import { LoaderIcon } from "lucide-react";
 import { useThemeStore } from "../store/useThemeStore";
 
 const messages = [
-  "Connecting...",
+  "Loading...",
   "Just a second",
+  "Connecting...",
   "Almost ready",
   "Tuning the experience",
   "Loading magic",

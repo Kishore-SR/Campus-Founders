@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken } from "../lib/api";
+import toast from "react-hot-toast";
 
 import {
   StreamVideo,
@@ -18,7 +19,6 @@ import {
 
 // Only import our custom styles
 import "../styles/callPage.css";
-import toast from "react-hot-toast";
 import ChatLoader from "../components/ChatLoader";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
@@ -36,6 +36,7 @@ const CallPage = () => {
     queryFn: getStreamToken,
     enabled: !!authUser,
   });
+
   useEffect(() => {
     const initCall = async () => {
       if (!tokenData?.token || !authUser || !callId) return;
@@ -51,7 +52,7 @@ const CallPage = () => {
 
         const user = {
           id: authUser._id,
-          name: authUser.username,
+          name: authUser.fullName || authUser.username,
           image: authUser.profilePic || "",
         };
 
@@ -90,7 +91,7 @@ const CallPage = () => {
           content="Connect face-to-face with founders and investors on Campus Founders."
         />
       </Helmet>
-      {isLoading || !call ? (
+      {!call ? (
         <ChatLoader />
       ) : (
         <div className="absolute inset-0">
@@ -119,7 +120,7 @@ const CallContent = () => {
 
   const navigate = useNavigate();
 
-  if (callingState === CallingState.LEFT) return navigate("/");
+  if (callingState === CallingState.LEFT) return navigate("/home");
 
   return (
     <StreamTheme>

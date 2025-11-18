@@ -1,5 +1,8 @@
 import User from "../models/User.js";
 import Startup from "../models/Startup.js";
+import Investment from "../models/Investment.js";
+import Review from "../models/Review.js";
+import FriendRequest from "../models/FriendRequest.js";
 import jwt from "jsonwebtoken";
 
 // Admin login
@@ -266,6 +269,61 @@ export async function getDashboardStats(req, res) {
     res.status(200).json(stats);
   } catch (error) {
     console.error("Error in getDashboardStats:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// Delete user completely (removes user and all related data)
+export async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    // Verify password
+    if (password !== "ksr") {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // Find user
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Prevent deleting admin users
+    if (user.role === "admin") {
+      return res.status(403).json({ message: "Cannot delete admin users" });
+    }
+
+    // Delete all startups owned by this user
+    await Startup.deleteMany({ owner: id });
+
+    // Delete all investments where user is investor
+    await Investment.deleteMany({ investor: id });
+
+    // Delete all reviews by this user
+    await Review.deleteMany({ user: id });
+
+    // Delete all friend requests where user is sender or recipient
+    await FriendRequest.deleteMany({
+      $or: [{ sender: id }, { recipient: id }],
+    });
+
+    // Remove user from all other users' friends arrays
+    await User.updateMany({ friends: id }, { $pull: { friends: id } });
+
+    // Remove user from startup upvotes
+    await Startup.updateMany({ upvotes: id }, { $pull: { upvotes: id } });
+
+    // Finally, delete the user
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({
+      message: "User and all related data deleted successfully",
+      deletedUserId: id,
+    });
+  } catch (error) {
+    console.error("Error in deleteUser:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }

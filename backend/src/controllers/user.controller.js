@@ -26,7 +26,7 @@ export async function getMyFriends(req, res) {
       .select("friends")
       .populate(
         "friends",
-        "username profilePic nativeLanguage learningLanguage bio role"
+        "username fullName profilePic nativeLanguage learningLanguage bio role location"
       );
 
     res.status(200).json(user.friends);
@@ -130,13 +130,16 @@ export async function getFriendRequests(req, res) {
       status: "pending",
     }).populate(
       "sender",
-      "username profilePic nativeLanguage learningLanguage"
+      "username fullName profilePic nativeLanguage learningLanguage bio role location"
     );
 
     const acceptedReqs = await FriendRequest.find({
       sender: req.user.id,
       status: "accepted",
-    }).populate("recipient", "username profilePic");
+    }).populate(
+      "recipient",
+      "username fullName profilePic nativeLanguage learningLanguage bio role location"
+    );
 
     res.status(200).json({ incomingReqs, acceptedReqs });
   } catch (error) {
@@ -152,7 +155,7 @@ export async function getOutgoingFriendReqs(req, res) {
       status: "pending",
     }).populate(
       "recipient",
-      "username profilePic nativeLanguage learningLanguage"
+      "username fullName profilePic nativeLanguage learningLanguage bio role location"
     );
 
     res.status(200).json(outgoingRequests);
@@ -173,6 +176,149 @@ export async function getApprovedInvestors(req, res) {
     res.status(200).json(investors);
   } catch (error) {
     console.log("Error in getApprovedInvestors controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Update user profile
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const {
+      fullName,
+      bio,
+      profilePic,
+      // Investor-specific fields
+      firm,
+      investorRole,
+      ticketSize,
+      investmentDomains,
+      linkedinUrl,
+      previousInvestments,
+    } = req.body;
+
+    // Validate that profilePic is a valid data URL if provided
+    if (
+      profilePic &&
+      !profilePic.startsWith("data:image/") &&
+      !profilePic.startsWith("http")
+    ) {
+      return res.status(400).json({
+        message:
+          "Invalid profile picture format. Must be a data URL or HTTP URL",
+      });
+    }
+
+    // Validate previousInvestments is a valid URL if provided
+    if (
+      previousInvestments &&
+      !previousInvestments.startsWith("http") &&
+      !previousInvestments.startsWith("https") &&
+      previousInvestments.trim() !== ""
+    ) {
+      return res.status(400).json({
+        message:
+          "Previous investments must be a valid URL (e.g., Google Drive link)",
+      });
+    }
+
+    // Validate linkedinUrl is a valid URL if provided
+    if (
+      linkedinUrl &&
+      !linkedinUrl.startsWith("http") &&
+      !linkedinUrl.startsWith("https") &&
+      linkedinUrl.trim() !== ""
+    ) {
+      return res.status(400).json({
+        message: "LinkedIn URL must be a valid URL",
+      });
+    }
+
+    const updateData = {};
+    if (fullName !== undefined) updateData.fullName = fullName.trim();
+    if (bio !== undefined) updateData.bio = bio.trim();
+    if (profilePic !== undefined) updateData.profilePic = profilePic;
+
+    // Only update investor fields if user is an investor
+    if (user.role === "investor") {
+      if (firm !== undefined) updateData.firm = firm.trim();
+      if (investorRole !== undefined)
+        updateData.investorRole = investorRole.trim();
+      if (ticketSize !== undefined) updateData.ticketSize = ticketSize.trim();
+      if (investmentDomains !== undefined) {
+        // Ensure it's an array and filter out empty strings
+        updateData.investmentDomains = Array.isArray(investmentDomains)
+          ? investmentDomains.filter((domain) => domain && domain.trim() !== "")
+          : [];
+      }
+      if (linkedinUrl !== undefined)
+        updateData.linkedinUrl = linkedinUrl.trim();
+      if (previousInvestments !== undefined)
+        updateData.previousInvestments = previousInvestments.trim();
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update Stream user
+    try {
+      const { upsertStreamUser } = await import("../lib/stream.js");
+      await upsertStreamUser({
+        id: updatedUser._id.toString(),
+        name: updatedUser.fullName || updatedUser.username,
+        image: updatedUser.profilePic || "",
+      });
+      console.log(`Stream user updated for "@${updatedUser.username}"`);
+    } catch (error) {
+      console.error("Error updating Stream user:", error.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error in updateProfile controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Purchase premium subscription
+export async function purchasePremium(req, res) {
+  try {
+    const userId = req.user.id;
+
+    // Simulate payment processing (in production, integrate with payment gateway)
+    // For now, we'll just update the user's premium status
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isPremium: true },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Premium subscription activated successfully",
+      user: user,
+    });
+  } catch (error) {
+    console.error("Error in purchasePremium controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

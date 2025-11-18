@@ -42,50 +42,68 @@ const AdminDashboardPage = () => {
         {/* Platform Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="card bg-gradient-to-br from-primary to-primary/70 text-primary-content">
-            <div className="card-body">
-              <Users className="size-8 mb-2" />
-              <h3 className="text-3xl font-bold">{stats?.users?.total || 0}</h3>
-              <p className="opacity-90">Total Users</p>
+            <div className="card-body p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Users className="size-8" />
+                  <h3 className="text-3xl font-bold">{stats?.users?.total || 0}</h3>
+                </div>
+              </div>
+              <p className="opacity-90 mt-2">Total Users</p>
             </div>
           </div>
 
           <div className="card bg-gradient-to-br from-secondary to-secondary/70 text-secondary-content">
-            <div className="card-body">
-              <Briefcase className="size-8 mb-2" />
-              <h3 className="text-3xl font-bold">{stats?.startups?.total || 0}</h3>
-              <p className="opacity-90">Total Startups</p>
+            <div className="card-body p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Briefcase className="size-8" />
+                  <h3 className="text-3xl font-bold">{stats?.startups?.total || 0}</h3>
+                </div>
+              </div>
+              <p className="opacity-90 mt-2">Total Startups</p>
             </div>
           </div>
 
           <div className="card bg-gradient-to-br from-accent to-accent/70 text-accent-content">
-            <div className="card-body">
-              <TrendingUp className="size-8 mb-2" />
-              <h3 className="text-3xl font-bold">{stats?.users?.students || 0}</h3>
-              <p className="opacity-90">Student Founders</p>
+            <div className="card-body p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="size-8" />
+                  <h3 className="text-3xl font-bold">{stats?.users?.students || 0}</h3>
+                </div>
+              </div>
+              <p className="opacity-90 mt-2">Student Founders</p>
             </div>
           </div>
 
           <div className="card bg-gradient-to-br from-info to-info/70 text-info-content">
-            <div className="card-body">
-              <UserCheck className="size-8 mb-2" />
-              <h3 className="text-3xl font-bold">{stats?.users?.investors || 0}</h3>
-              <p className="opacity-90">Investors</p>
+            <div className="card-body p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <UserCheck className="size-8" />
+                  <h3 className="text-3xl font-bold">{stats?.users?.investors || 0}</h3>
+                </div>
+              </div>
+              <p className="opacity-90 mt-2">Investors</p>
             </div>
           </div>
         </div>
 
         {/* Pending Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Pending Startups */}
           <Link to="/admin/startups?status=pending" className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
-            <div className="card-body">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Pending Startups</h2>
-                <Clock className="size-6 text-warning" />
+            <div className="card-body p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-bold">Pending Startups</h2>
+                <Clock className="size-5 text-warning" />
               </div>
-              <div className="stat-value text-warning">{stats?.startups?.pending || 0}</div>
-              <p className="opacity-70">Awaiting approval</p>
-              <div className="card-actions justify-end mt-4">
+              <div className="flex items-center gap-3 mb-1">
+                <span className="text-3xl font-bold text-warning">{stats?.startups?.pending || 0}</span>
+              </div>
+              <p className="text-sm opacity-70 mb-2">Awaiting approval</p>
+              <div className="card-actions justify-end mt-2">
                 <button className="btn btn-warning btn-sm">Review Now</button>
               </div>
             </div>
@@ -93,14 +111,16 @@ const AdminDashboardPage = () => {
 
           {/* Pending Investors */}
           <Link to="/admin/investors?status=pending" className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
-            <div className="card-body">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Pending Investors</h2>
-                <Clock className="size-6 text-warning" />
+            <div className="card-body p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-bold">Pending Investors</h2>
+                <Clock className="size-5 text-warning" />
               </div>
-              <div className="stat-value text-warning">{stats?.investors?.pending || 0}</div>
-              <p className="opacity-70">Awaiting verification</p>
-              <div className="card-actions justify-end mt-4">
+              <div className="flex items-center gap-3 mb-1">
+                <span className="text-3xl font-bold text-warning">{stats?.investors?.pending || 0}</span>
+              </div>
+              <p className="text-sm opacity-70 mb-2">Awaiting verification</p>
+              <div className="card-actions justify-end mt-2">
                 <button className="btn btn-warning btn-sm">Verify Now</button>
               </div>
             </div>

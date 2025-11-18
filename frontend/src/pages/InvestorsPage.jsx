@@ -190,8 +190,18 @@ const InvestorsPage = () => {
                   {/* Profile */}
                   <div className="flex items-start gap-4">
                     <div className="avatar">
-                      <div className="w-16 h-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                        <img src={investor.profilePic} alt={investor.fullName} />
+                      <div className="w-16 h-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                        {investor.profilePic && investor.profilePic.trim() ? (
+                          <img
+                            src={investor.profilePic}
+                            alt={investor.fullName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold w-full h-full">
+                            {investor.fullName?.charAt(0) || investor.username?.charAt(0) || "I"}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex-1">

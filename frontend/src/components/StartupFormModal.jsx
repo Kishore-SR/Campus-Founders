@@ -27,6 +27,16 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
           demoUrl: existingStartup.demoUrl || "",
           screenshots: existingStartup.screenshots || [],
           team: existingStartup.team || [],
+          mobileNumber: existingStartup.mobileNumber || "",
+          companyRegisteredLocation: existingStartup.companyRegisteredLocation || "",
+          companyType: existingStartup.companyType || "startup",
+          fundingRound: existingStartup.fundingRound || "not funded",
+          numberOfEmployees: existingStartup.numberOfEmployees || 0,
+          companyContactInfo: existingStartup.companyContactInfo || {
+            email: "",
+            phone: "",
+            address: "",
+          },
         },
         newScreenshot: "",
         newTeamMember: {
@@ -54,6 +64,16 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
             demoUrl: "",
             screenshots: [],
             team: [],
+            mobileNumber: "",
+            companyRegisteredLocation: "",
+            companyType: "startup",
+            fundingRound: "not funded",
+            numberOfEmployees: 0,
+            companyContactInfo: {
+              email: "",
+              phone: "",
+              address: "",
+            },
           },
           newScreenshot: draft.newScreenshot || "",
           newTeamMember: draft.newTeamMember || {
@@ -62,7 +82,7 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
             linkedinUrl: "",
           },
         };
-      } catch (e) {
+      } catch {
         localStorage.removeItem(STORAGE_KEY);
       }
     }
@@ -80,6 +100,16 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
         demoUrl: "",
         screenshots: [],
         team: [],
+        mobileNumber: "",
+        companyRegisteredLocation: "",
+        companyType: "startup",
+        fundingRound: "not funded",
+        numberOfEmployees: 0,
+        companyContactInfo: {
+          email: "",
+          phone: "",
+          address: "",
+        },
       },
       newScreenshot: "",
       newTeamMember: {
@@ -112,6 +142,16 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
         demoUrl: existingStartup.demoUrl || "",
         screenshots: existingStartup.screenshots || [],
         team: existingStartup.team || [],
+        mobileNumber: existingStartup.mobileNumber || "",
+        companyRegisteredLocation: existingStartup.companyRegisteredLocation || "",
+        companyType: existingStartup.companyType || "startup",
+        fundingRound: existingStartup.fundingRound || "not funded",
+        numberOfEmployees: existingStartup.numberOfEmployees || 0,
+        companyContactInfo: existingStartup.companyContactInfo || {
+          email: "",
+          phone: "",
+          address: "",
+        },
       });
       setNewScreenshot("");
       setNewTeamMember({ name: "", designation: "", linkedinUrl: "" });
@@ -134,7 +174,7 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
           if (draft.newTeamMember) {
             setNewTeamMember(draft.newTeamMember);
           }
-        } catch (e) {
+        } catch {
           localStorage.removeItem(STORAGE_KEY);
         }
       }
@@ -379,6 +419,153 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
                 value={formData.demoUrl}
                 onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })}
                 placeholder="https://..."
+              />
+            </div>
+          </div>
+
+          {/* Company Registration Details */}
+          <div className="divider">Company Registration Details</div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Mobile Number</span>
+                </label>
+                <input
+                  type="tel"
+                  className="input input-bordered placeholder:opacity-40"
+                  value={formData.mobileNumber}
+                  onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+                  placeholder="+91 9876543210"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Company Registered Location</span>
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered placeholder:opacity-40"
+                  value={formData.companyRegisteredLocation}
+                  onChange={(e) => setFormData({ ...formData, companyRegisteredLocation: e.target.value })}
+                  placeholder="City, State, Country"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Type of Company</span>
+                </label>
+                <select
+                  className="select select-bordered"
+                  value={formData.companyType}
+                  onChange={(e) => setFormData({ ...formData, companyType: e.target.value })}
+                >
+                  <option value="startup">Startup</option>
+                  <option value="msme">MSME</option>
+                  <option value="llp">LLP (Limited Liability Partnership)</option>
+                  <option value="private limited">Private Limited</option>
+                  <option value="public limited">Public Limited</option>
+                  <option value="partnership">Partnership</option>
+                  <option value="sole proprietorship">Sole Proprietorship</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Funding Round</span>
+                </label>
+                <select
+                  className="select select-bordered"
+                  value={formData.fundingRound}
+                  onChange={(e) => setFormData({ ...formData, fundingRound: e.target.value })}
+                >
+                  <option value="not funded">Not Funded</option>
+                  <option value="bootstrapped">Bootstrapped</option>
+                  <option value="pre-seed">Pre-Seed</option>
+                  <option value="seed">Seed</option>
+                  <option value="series a">Series A</option>
+                  <option value="series b">Series B</option>
+                  <option value="series c">Series C</option>
+                  <option value="series d+">Series D+</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Number of Employees (Team Size)</span>
+              </label>
+              <input
+                type="number"
+                className="input input-bordered placeholder:opacity-40"
+                value={formData.numberOfEmployees}
+                onChange={(e) => setFormData({ ...formData, numberOfEmployees: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+                min="0"
+              />
+            </div>
+
+            <div className="divider text-sm">Company Contact Information</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Company Email</span>
+                </label>
+                <input
+                  type="email"
+                  className="input input-bordered placeholder:opacity-40"
+                  value={formData.companyContactInfo?.email || ""}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    companyContactInfo: {
+                      ...formData.companyContactInfo,
+                      email: e.target.value,
+                    },
+                  })}
+                  placeholder="contact@company.com"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Company Phone</span>
+                </label>
+                <input
+                  type="tel"
+                  className="input input-bordered placeholder:opacity-40"
+                  value={formData.companyContactInfo?.phone || ""}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    companyContactInfo: {
+                      ...formData.companyContactInfo,
+                      phone: e.target.value,
+                    },
+                  })}
+                  placeholder="+91 9876543210"
+                />
+              </div>
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Company Address</span>
+              </label>
+              <textarea
+                className="textarea textarea-bordered h-24 placeholder:opacity-40"
+                value={formData.companyContactInfo?.address || ""}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  companyContactInfo: {
+                    ...formData.companyContactInfo,
+                    address: e.target.value,
+                  },
+                })}
+                placeholder="Full company address"
               />
             </div>
           </div>

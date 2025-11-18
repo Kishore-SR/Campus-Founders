@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { LoaderIcon } from "lucide-react";
 
 const messages = [
-  "Connecting...",
+  "Loading your chat...",
   "Just a second",
+  "Connecting...",
   "Tuning the experience",
   "Almost ready",
   "Setting up servers",

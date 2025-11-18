@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthUser from "../hooks/useAuthUser";
-import { getMyStartup, getApprovedStartups } from "../lib/startup-api";
+import { getMyStartup, getApprovedStartups, getStartupById } from "../lib/startup-api";
 import { getStartupInvestments, updateInvestmentStatus, getMyInvestments } from "../lib/investment-api";
 import { axiosInstance } from "../lib/axios";
+import { getStreamToken } from "../lib/api";
 import { Link } from "react-router";
 import { Helmet } from "react-helmet-async";
 import { useThemeStore } from "../store/useThemeStore";
@@ -25,12 +26,33 @@ import {
   ExternalLink,
   Clock,
   AlertCircle,
+  MessageSquareIcon,
+  VideoIcon,
 } from "lucide-react";
+import { StreamChat } from "stream-chat";
 import PageLoader from "../components/PageLoader";
 import StartupFormModal from "../components/StartupFormModal";
 import MetricsEditModal from "../components/MetricsEditModal";
 import ConfirmModal from "../components/ConfirmModal";
+import EditProfileModal from "../components/EditProfileModal";
 import toast from "react-hot-toast";
+
+const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
+
+// Get initials from name (first letter of first name + first letter of last name)
+const getInitials = (name) => {
+  if (!name) return "U";
+  const parts = name.trim().split(" ").filter(part => part.length > 0);
+  if (parts.length >= 2) {
+    const firstInitial = parts[0]?.[0]?.toUpperCase() || "";
+    const lastInitial = parts[parts.length - 1]?.[0]?.toUpperCase() || "";
+    return (firstInitial + lastInitial) || "U";
+  }
+  if (parts.length === 1 && parts[0].length >= 2) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase() || "U";
+};
 
 const ProfilePage = () => {
   const { authUser } = useAuthUser();
@@ -38,6 +60,7 @@ const ProfilePage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     investmentId: null,
@@ -69,6 +92,70 @@ const ProfilePage = () => {
     refetchOnWindowFocus: false, // Prevent refetch when switching tabs
     refetchOnReconnect: false,
   });
+
+  // Fetch Stream token for video calls
+  const { data: tokenData } = useQuery({
+    queryKey: ["streamToken"],
+    queryFn: getStreamToken,
+    enabled: !!authUser,
+  });
+
+  // Video call handler
+  const handleVideoCall = async (user) => {
+    if (!user || !user._id || !user.username) {
+      toast.error("Cannot start call with invalid user");
+      return;
+    }
+
+    if (!authUser || !tokenData?.token) {
+      toast.error("You need to be logged in to start a call");
+      return;
+    }
+
+    try {
+      const client = StreamChat.getInstance(STREAM_API_KEY);
+
+      await client.connectUser(
+        {
+          id: authUser._id,
+          name: authUser.fullName || authUser.username,
+          image: authUser.profilePic,
+        },
+        tokenData.token
+      );
+
+      // Create channel ID same way as in ChatPage
+      const channelId = [authUser._id, user._id].sort().join("-");
+
+      // Create the call URL
+      const callUrl = `${window.location.origin}/call/${channelId}`;
+
+      // Create a temporary channel to send the message
+      const channel = client.channel("messaging", channelId, {
+        members: [authUser._id, user._id],
+      });
+
+      await channel.watch();
+
+      // Send the call link message
+      await channel.sendMessage({
+        text: `I've started a video call. Join here: \n ${callUrl}`,
+      });
+
+      // Show success toast with user's name
+      toast.success(
+        `Video call started! Share this link with ${user.fullName || user.username}`
+      );
+      // Open the call in a new window/tab
+      window.open(callUrl, "_blank");
+
+      // Clean up
+      await client.disconnectUser();
+    } catch (error) {
+      console.error("Error starting video call:", error);
+      toast.error("Could not start video call. Please try again.");
+    }
+  };
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ investmentId, status }) =>
@@ -115,22 +202,46 @@ const ProfilePage = () => {
             <div className="card-body">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="avatar">
-                  <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                    <img src={authUser?.profilePic} alt={authUser?.username} />
+                  <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                    {authUser?.profilePic && authUser.profilePic.trim() ? (
+                      <img
+                        src={authUser.profilePic}
+                        alt={authUser?.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-3xl w-full h-full">
+                        <span className="flex items-center justify-center w-full h-full">
+                          {getInitials(authUser?.fullName || authUser?.username || "U")}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex-1 text-center md:text-left">
-                  <h1 className="text-3xl font-bold">{authUser?.fullName}</h1>
-                  <p className="text-lg opacity-70">@{authUser?.username}</p>
-                  <div className="badge badge-primary badge-lg mt-2">
-                    {authUser?.role === "student" && "🎓 Student Founder"}
-                    {authUser?.role === "investor" && "💼 Investor"}
-                    {authUser?.role === "normal" && "👤 Community Member"}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h1 className="text-3xl font-bold">{authUser?.fullName || authUser?.username}</h1>
+                      <p className="text-lg opacity-70">@{authUser?.username}</p>
+                      <div className="badge badge-primary badge-lg mt-2">
+                        {authUser?.role === "student" && "🎓 Student Founder"}
+                        {authUser?.role === "investor" && "💼 Investor"}
+                        {authUser?.role === "normal" && "👤 Community Member"}
+                      </div>
+                      {authUser?.bio && (
+                        <p className="mt-4 opacity-80">{authUser.bio}</p>
+                      )}
+                    </div>
+                    {/* Edit Profile Button */}
+                    <button
+                      onClick={() => setIsEditProfileModalOpen(true)}
+                      className="btn btn-primary btn-sm"
+                    >
+                      <Edit className="size-4 mr-1" />
+                      Edit Profile
+                    </button>
                   </div>
-                  {authUser?.bio && (
-                    <p className="mt-4 opacity-80">{authUser.bio}</p>
-                  )}
                 </div>
               </div>
             </div>
@@ -212,6 +323,72 @@ const ProfilePage = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Company Registration Details */}
+                  {(startup.mobileNumber || startup.companyRegisteredLocation || startup.companyType || startup.fundingRound || startup.numberOfEmployees || startup.companyContactInfo) && (
+                    <div className="card bg-base-200 shadow-xl">
+                      <div className="card-body">
+                        <h3 className="text-xl font-bold mb-4">Company Registration Details</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {startup.mobileNumber && (
+                            <div className="p-3 bg-base-300 rounded-lg">
+                              <p className="text-sm opacity-70">Mobile Number</p>
+                              <p className="font-semibold">{startup.mobileNumber}</p>
+                            </div>
+                          )}
+                          {startup.companyRegisteredLocation && (
+                            <div className="p-3 bg-base-300 rounded-lg">
+                              <p className="text-sm opacity-70">Registered Location</p>
+                              <p className="font-semibold">{startup.companyRegisteredLocation}</p>
+                            </div>
+                          )}
+                          {startup.companyType && (
+                            <div className="p-3 bg-base-300 rounded-lg">
+                              <p className="text-sm opacity-70">Company Type</p>
+                              <p className="font-semibold capitalize">{startup.companyType}</p>
+                            </div>
+                          )}
+                          {startup.fundingRound && (
+                            <div className="p-3 bg-base-300 rounded-lg">
+                              <p className="text-sm opacity-70">Funding Round</p>
+                              <p className="font-semibold capitalize">{startup.fundingRound}</p>
+                            </div>
+                          )}
+                          {startup.numberOfEmployees !== undefined && startup.numberOfEmployees !== null && (
+                            <div className="p-3 bg-base-300 rounded-lg">
+                              <p className="text-sm opacity-70">Team Size</p>
+                              <p className="font-semibold">{startup.numberOfEmployees} {startup.numberOfEmployees === 1 ? "employee" : "employees"}</p>
+                            </div>
+                          )}
+                        </div>
+                        {startup.companyContactInfo && (startup.companyContactInfo.email || startup.companyContactInfo.phone || startup.companyContactInfo.address) && (
+                          <div className="mt-4 pt-4 border-t border-base-300">
+                            <h4 className="font-semibold mb-3">Contact Information</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {startup.companyContactInfo.email && (
+                                <div className="p-3 bg-base-300 rounded-lg">
+                                  <p className="text-sm opacity-70">Email</p>
+                                  <p className="font-semibold">{startup.companyContactInfo.email}</p>
+                                </div>
+                              )}
+                              {startup.companyContactInfo.phone && (
+                                <div className="p-3 bg-base-300 rounded-lg">
+                                  <p className="text-sm opacity-70">Phone</p>
+                                  <p className="font-semibold">{startup.companyContactInfo.phone}</p>
+                                </div>
+                              )}
+                              {startup.companyContactInfo.address && (
+                                <div className="p-3 bg-base-300 rounded-lg md:col-span-2">
+                                  <p className="text-sm opacity-70">Address</p>
+                                  <p className="font-semibold">{startup.companyContactInfo.address}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Metrics Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -476,16 +653,23 @@ const ProfilePage = () => {
                                 <div key={groupIndex} className="card bg-base-300">
                                   <div className="card-body p-4">
                                     <div className="flex items-start justify-between mb-4">
-                                      <div className="flex items-center gap-3">
+                                      <div className="flex items-center gap-3 flex-1">
                                         <div className="avatar">
-                                          <div className="w-14 h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                                            <img
-                                              src={group.investor.profilePic}
-                                              alt={group.investor.fullName}
-                                            />
+                                          <div className="w-14 h-14 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                                            {group.investor.profilePic && group.investor.profilePic.trim() ? (
+                                              <img
+                                                src={group.investor.profilePic}
+                                                alt={group.investor.fullName}
+                                                className="w-full h-full object-cover"
+                                              />
+                                            ) : (
+                                              <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-base w-full h-full">
+                                                {group.investor.fullName?.charAt(0) || group.investor.username?.charAt(0) || "I"}
+                                              </div>
+                                            )}
                                           </div>
                                         </div>
-                                        <div>
+                                        <div className="flex-1">
                                           <p className="font-bold text-lg">
                                             {group.investor.fullName}
                                           </p>
@@ -495,6 +679,23 @@ const ProfilePage = () => {
                                           <p className="text-xs opacity-60 mt-1">
                                             {group.investments.length} commitment{group.investments.length !== 1 ? 's' : ''}
                                           </p>
+                                          {/* Chat and Video Call Buttons */}
+                                          <div className="flex gap-2 mt-2">
+                                            <Link
+                                              to={`/chat/${group.investor._id || group.investor}`}
+                                              className="btn btn-primary btn-sm"
+                                            >
+                                              <MessageSquareIcon className="h-4 w-4 mr-1" />
+                                              Chat
+                                            </Link>
+                                            <button
+                                              onClick={() => handleVideoCall(group.investor)}
+                                              className="btn btn-outline btn-sm"
+                                            >
+                                              <VideoIcon className="h-4 w-4 mr-1" />
+                                              Call
+                                            </button>
+                                          </div>
                                         </div>
                                       </div>
                                       <div className="text-right">
@@ -542,14 +743,14 @@ const ProfilePage = () => {
                                                 <p className="font-semibold text-base">Status</p>
                                               </div>
                                               <div
-                                                className={`badge badge-sm ${investment.status === "committed"
+                                                className={`badge px-4 py-2 text-base font-semibold ${investment.status === "committed"
                                                   ? "badge-success"
                                                   : investment.status === "rejected"
                                                     ? "badge-error"
                                                     : "badge-warning"
                                                   }`}
                                               >
-                                                {investment.status}
+                                                {investment.status.charAt(0).toUpperCase() + investment.status.slice(1)}
                                               </div>
                                             </div>
                                           </div>
@@ -727,6 +928,70 @@ const ProfilePage = () => {
         type={confirmModal.status === "committed" ? "success" : "error"}
         isPending={updateStatusMutation.isPending}
       />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+      />
+    </div>
+  );
+};
+
+// Startup Founder Info Component (for displaying founder info in investor dashboard)
+const StartupFounderInfo = ({ startupId, handleVideoCall }) => {
+  const { data: startupResponse } = useQuery({
+    queryKey: ["startup", startupId],
+    queryFn: () => getStartupById(startupId),
+    enabled: !!startupId,
+  });
+
+  const founder = startupResponse?.startup?.owner;
+
+  if (!founder) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-3 mb-2 p-2 bg-base-200 rounded-lg">
+      <div className="avatar">
+        <div className="w-10 h-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
+          {founder.profilePic && founder.profilePic.trim() ? (
+            <img
+              src={founder.profilePic}
+              alt={founder.fullName || founder.username}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm w-full h-full">
+              {founder.fullName?.charAt(0) || founder.username?.charAt(0) || "U"}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex-1">
+        <p className="font-semibold text-sm">
+          {founder.fullName || `@${founder.username}`}
+        </p>
+        <p className="text-xs opacity-70">Founder</p>
+      </div>
+      {/* Chat and Video Call Buttons */}
+      <div className="flex gap-2">
+        <Link
+          to={`/chat/${founder._id || founder}`}
+          className="btn btn-primary btn-xs"
+        >
+          <MessageSquareIcon className="h-3 w-3 mr-1" />
+          Chat
+        </Link>
+        <button
+          onClick={() => handleVideoCall(founder)}
+          className="btn btn-outline btn-xs"
+        >
+          <VideoIcon className="h-3 w-3 mr-1" />
+          Call
+        </button>
+      </div>
     </div>
   );
 };
@@ -739,6 +1004,70 @@ const InvestorDashboard = ({ authUser }) => {
     queryFn: getMyInvestments,
     enabled: authUser?.role === "investor",
   });
+
+  // Fetch Stream token for video calls
+  const { data: tokenData } = useQuery({
+    queryKey: ["streamToken"],
+    queryFn: getStreamToken,
+    enabled: !!authUser,
+  });
+
+  // Video call handler for Investor Dashboard
+  const handleVideoCall = async (user) => {
+    if (!user || !user._id || !user.username) {
+      toast.error("Cannot start call with invalid user");
+      return;
+    }
+
+    if (!authUser || !tokenData?.token) {
+      toast.error("You need to be logged in to start a call");
+      return;
+    }
+
+    try {
+      const client = StreamChat.getInstance(STREAM_API_KEY);
+
+      await client.connectUser(
+        {
+          id: authUser._id,
+          name: authUser.fullName || authUser.username,
+          image: authUser.profilePic,
+        },
+        tokenData.token
+      );
+
+      // Create channel ID same way as in ChatPage
+      const channelId = [authUser._id, user._id].sort().join("-");
+
+      // Create the call URL
+      const callUrl = `${window.location.origin}/call/${channelId}`;
+
+      // Create a temporary channel to send the message
+      const channel = client.channel("messaging", channelId, {
+        members: [authUser._id, user._id],
+      });
+
+      await channel.watch();
+
+      // Send the call link message
+      await channel.sendMessage({
+        text: `I've started a video call. Join here: \n ${callUrl}`,
+      });
+
+      // Show success toast with user's name
+      toast.success(
+        `Video call started! Share this link with ${user.fullName || user.username}`
+      );
+      // Open the call in a new window/tab
+      window.open(callUrl, "_blank");
+
+      // Clean up
+      await client.disconnectUser();
+    } catch (error) {
+      console.error("Error starting video call:", error);
+      toast.error("Could not start video call. Please try again.");
+    }
+  };
 
   if (isLoading) {
     return <PageLoader />;
@@ -1006,6 +1335,13 @@ const InvestorDashboard = ({ authUser }) => {
                         <p className="text-sm opacity-70 mb-2">
                           {investment.startup?.tagline || "No tagline"}
                         </p>
+                        {/* Founder Info with Chat/Video Call Buttons */}
+                        {investment.startup?._id && (
+                          <StartupFounderInfo
+                            startupId={investment.startup._id}
+                            handleVideoCall={handleVideoCall}
+                          />
+                        )}
                         <div className="flex flex-wrap gap-2">
                           {investment.startup?.category && (
                             <div className="badge badge-primary badge-sm">
@@ -1017,7 +1353,7 @@ const InvestorDashboard = ({ authUser }) => {
                               {investment.startup.stage}
                             </div>
                           )}
-                          <div className={`badge badge-sm ${getStatusColor(investment.status)}`}>
+                          <div className={`badge px-4 py-2 text-base font-semibold ${getStatusColor(investment.status)}`}>
                             {getStatusLabel(investment.status)}
                           </div>
                         </div>

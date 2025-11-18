@@ -9,6 +9,7 @@ import {
   approveInvestor,
   rejectInvestor,
   getDashboardStats,
+  deleteUser,
 } from "../controllers/admin.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
@@ -32,5 +33,6 @@ router.put(
   approveInvestor
 );
 router.put("/investors/:id/reject", protectRoute, requireAdmin, rejectInvestor);
+router.delete("/users/:id", protectRoute, requireAdmin, deleteUser);
 
 export default router;

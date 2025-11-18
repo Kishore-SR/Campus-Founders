@@ -84,12 +84,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    previousInvestments: {
+      type: String,
+      default: "",
+    },
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

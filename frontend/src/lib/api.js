@@ -19,14 +19,18 @@ export const getAuthUser = async () => {
     const res = await axiosInstance.get("/auth/me");
 
     // If we have user data, map backend field names to our new field names
-    if (res.data) {
+    if (res.data && res.data.user) {
       return {
         ...res.data,
-        // Map backend fields to our new field names in the frontend
-        interestedDomain: res.data.nativeLanguage || "",
-        currentFocus: res.data.nativeLanguage || "", // Keep for backward compatibility
-        skillTrack: res.data.learningLanguage || "", // Keep for backward compatibility
-        role: res.data.role || "normal", // Include role with default
+        user: {
+          ...res.data.user,
+          // Map backend fields to our new field names in the frontend
+          interestedDomain: res.data.user.nativeLanguage || "",
+          currentFocus: res.data.user.nativeLanguage || "", // Keep for backward compatibility
+          skillTrack: res.data.user.learningLanguage || "", // Keep for backward compatibility
+          role: res.data.user.role || "normal", // Include role with default
+          isPremium: res.data.user.isPremium || false, // Include premium status
+        },
       };
     }
 
@@ -129,11 +133,11 @@ export async function getFriendRequests() {
     ) {
       response.data.acceptedReqs = response.data.acceptedReqs.map((req) => ({
         ...req,
-        sender: {
-          ...req.sender,
-          currentFocus: req.sender.nativeLanguage,
-          skillTrack: req.sender.learningLanguage,
-          role: req.sender.role || "normal",
+        recipient: {
+          ...req.recipient,
+          currentFocus: req.recipient.nativeLanguage,
+          skillTrack: req.recipient.learningLanguage,
+          role: req.recipient.role || "normal",
         },
       }));
     }
@@ -168,4 +172,16 @@ export const checkUsernameExists = async (username) => {
     }
     throw error;
   }
+};
+
+// Update user profile
+export const updateProfile = async (profileData) => {
+  const response = await axiosInstance.put("/users/profile", profileData);
+  return response.data;
+};
+
+// Purchase premium subscription
+export const purchasePremium = async () => {
+  const response = await axiosInstance.post("/users/premium/purchase");
+  return response.data;
 };

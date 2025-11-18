@@ -117,10 +117,21 @@ export async function getStartupInvestments(req, res) {
       .filter((inv) => inv.status === "pending")
       .reduce((sum, inv) => sum + inv.amount, 0);
 
+    // Count unique investors (not total investments)
+    const uniqueInvestorIds = new Set(
+      investments
+        .map((inv) => {
+          const investorId = inv.investor?._id || inv.investor;
+          return investorId?.toString();
+        })
+        .filter(Boolean)
+    );
+    const uniqueInvestorsCount = uniqueInvestorIds.size;
+
     res.status(200).json({
       investments,
       stats: {
-        total: investments.length,
+        total: uniqueInvestorsCount,
         totalCommitted,
         totalPending,
       },

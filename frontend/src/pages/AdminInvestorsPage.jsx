@@ -33,10 +33,13 @@ const AdminInvestorsPage = () => {
 
   const { data: response, isLoading } = useQuery({
     queryKey: ["adminInvestors", activeTab],
-    queryFn: () =>
-      getAllInvestors({
-        approvalStatus: activeTab === "all" ? undefined : activeTab,
-      }),
+    queryFn: () => {
+      const params = {};
+      if (activeTab !== "all") {
+        params.status = activeTab;
+      }
+      return getAllInvestors(params);
+    },
   });
 
   const investors = response?.investors || [];
@@ -184,9 +187,9 @@ const AdminInvestorsPage = () => {
         </div>
 
         {/* Investors List */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {investors.length === 0 ? (
-            <div className="card bg-base-200">
+            <div className="card bg-base-200 md:col-span-2">
               <div className="card-body text-center">
                 <p className="opacity-70">No investors found</p>
               </div>
@@ -197,152 +200,144 @@ const AdminInvestorsPage = () => {
                 key={investor._id}
                 className="card bg-base-200 shadow-xl border-2 border-transparent hover:border-primary transition-all"
               >
-                <div className="card-body">
-                  <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Profile Picture */}
-                    <div className="avatar">
-                      <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                        {investor.profilePic && investor.profilePic.trim() ? (
-                          <img src={investor.profilePic} alt={investor.fullName} />
-                        ) : (
-                          <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-2xl font-bold text-primary-content w-full h-full">
-                            {investor.fullName?.charAt(0) || investor.username?.charAt(0) || "I"}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Investor Details */}
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h2 className="text-2xl font-bold">{investor.fullName}</h2>
-                          <p className="text-sm opacity-70">@{investor.username}</p>
-                        </div>
-                        <div
-                          className={`badge ${investor.investorApprovalStatus === "approved"
-                            ? "badge-success"
-                            : investor.investorApprovalStatus === "rejected"
-                              ? "badge-error"
-                              : "badge-warning"
-                            } badge-lg gap-2`}
-                        >
-                          {investor.investorApprovalStatus === "approved" ? (
-                            <ShieldCheck className="size-4" />
-                          ) : investor.investorApprovalStatus === "rejected" ? (
-                            <ShieldX className="size-4" />
+                <div className="card-body p-4">
+                  <div className="flex flex-col gap-4">
+                    {/* Profile Picture and Header */}
+                    <div className="flex items-start gap-4">
+                      <div className="avatar">
+                        <div className="w-16 h-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                          {investor.profilePic && investor.profilePic.trim() ? (
+                            <img
+                              src={investor.profilePic}
+                              alt={investor.fullName}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <Clock className="size-4" />
+                            <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xl font-bold text-primary-content w-full h-full">
+                              {investor.fullName?.charAt(0) || investor.username?.charAt(0) || "I"}
+                            </div>
                           )}
-                          {investor.investorApprovalStatus.toUpperCase()}
                         </div>
                       </div>
-
-                      {/* Bio */}
-                      {investor.bio && <p className="text-sm">{investor.bio}</p>}
-
-                      {/* Blockchain-style Verification Chain */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-base-300 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="size-5 text-primary" />
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-1">
                           <div>
-                            <div className="text-xs opacity-70">Firm</div>
-                            <div className="font-semibold">
-                              {investor.firm || "Not provided"}
-                            </div>
+                            <h2 className="text-lg font-bold">{investor.fullName}</h2>
+                            <p className="text-xs opacity-70">@{investor.username}</p>
                           </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Shield className="size-5 text-primary" />
-                          <div>
-                            <div className="text-xs opacity-70">Role</div>
-                            <div className="font-semibold">
-                              {investor.investorRole || "Not provided"}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="size-5 text-primary" />
-                          <div>
-                            <div className="text-xs opacity-70">Ticket Size</div>
-                            <div className="font-semibold">
-                              {investor.ticketSize || "Not provided"}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <LinkIcon className="size-5 text-primary" />
-                          <div>
-                            <div className="text-xs opacity-70">LinkedIn</div>
-                            {investor.linkedinUrl ? (
-                              <a
-                                href={investor.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="link link-primary text-sm"
-                              >
-                                View Profile
-                              </a>
+                          <div
+                            className={`badge ${investor.investorApprovalStatus === "approved"
+                              ? "badge-success"
+                              : investor.investorApprovalStatus === "rejected"
+                                ? "badge-error"
+                                : "badge-warning"
+                              } badge-sm gap-1`}
+                          >
+                            {investor.investorApprovalStatus === "approved" ? (
+                              <ShieldCheck className="size-3" />
+                            ) : investor.investorApprovalStatus === "rejected" ? (
+                              <ShieldX className="size-3" />
                             ) : (
-                              <div className="text-sm opacity-50">Not provided</div>
+                              <Clock className="size-3" />
                             )}
+                            {investor.investorApprovalStatus.toUpperCase()}
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Investment Domains */}
-                      {investor.investmentDomains?.length > 0 && (
+                    {/* Bio */}
+                    {investor.bio && <p className="text-sm line-clamp-2">{investor.bio}</p>}
+
+                    {/* Key Info */}
+                    <div className="grid grid-cols-2 gap-2 p-3 bg-base-300 rounded-lg">
+                      <div>
+                        <div className="text-xs opacity-70">Firm</div>
+                        <div className="font-semibold text-sm truncate">
+                          {investor.firm || "Not provided"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs opacity-70">Role</div>
+                        <div className="font-semibold text-sm truncate">
+                          {investor.investorRole || "Not provided"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs opacity-70">Ticket Size</div>
+                        <div className="font-semibold text-sm truncate">
+                          {investor.ticketSize || "Not provided"}
+                        </div>
+                      </div>
+                      {investor.linkedinUrl && (
                         <div>
-                          <div className="text-sm opacity-70 mb-2">Investment Domains:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {investor.investmentDomains.map((domain, index) => (
-                              <div key={index} className="badge badge-primary">
-                                {domain}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Location */}
-                      {investor.location && (
-                        <div className="text-sm opacity-70">📍 {investor.location}</div>
-                      )}
-
-                      {/* Action Buttons */}
-                      {investor.investorApprovalStatus === "pending" && (
-                        <div className="card-actions justify-end pt-4">
-                          <button
-                            onClick={() => handleApprove(investor._id)}
-                            className="btn btn-success btn-sm"
-                            disabled={approveMutation.isPending}
+                          <div className="text-xs opacity-70">LinkedIn</div>
+                          <a
+                            href={investor.linkedinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="link link-primary text-xs"
                           >
-                            <CheckCircle className="size-4 mr-1" />
-                            Verify Investor
-                          </button>
-                          <button
-                            onClick={() => handleReject(investor._id)}
-                            className="btn btn-error btn-sm"
-                            disabled={rejectMutation.isPending}
-                          >
-                            <XCircle className="size-4 mr-1" />
-                            Reject
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Rejection Reason */}
-                      {investor.investorApprovalStatus === "rejected" && investor.investorRejectionReason && (
-                        <div className="alert alert-error mt-2">
-                          <span className="text-sm">
-                            <strong>Rejection Reason:</strong> {investor.investorRejectionReason}
-                          </span>
+                            View Profile
+                          </a>
                         </div>
                       )}
                     </div>
+
+                    {/* Investment Domains */}
+                    {investor.investmentDomains?.length > 0 && (
+                      <div>
+                        <div className="text-xs opacity-70 mb-1">Investment Domains:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {investor.investmentDomains.slice(0, 3).map((domain, index) => (
+                            <div key={index} className="badge badge-primary badge-sm">
+                              {domain}
+                            </div>
+                          ))}
+                          {investor.investmentDomains.length > 3 && (
+                            <div className="badge badge-ghost badge-sm">
+                              +{investor.investmentDomains.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Location */}
+                    {investor.location && (
+                      <div className="text-xs opacity-70">📍 {investor.location}</div>
+                    )}
+
+                    {/* Action Buttons */}
+                    {investor.investorApprovalStatus === "pending" && (
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => handleApprove(investor._id)}
+                          className="btn btn-success btn-sm flex-1"
+                          disabled={approveMutation.isPending}
+                        >
+                          <CheckCircle className="size-4 mr-1" />
+                          Verify
+                        </button>
+                        <button
+                          onClick={() => handleReject(investor._id)}
+                          className="btn btn-error btn-sm flex-1"
+                          disabled={rejectMutation.isPending}
+                        >
+                          <XCircle className="size-4 mr-1" />
+                          Reject
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Rejection Reason */}
+                    {investor.investorApprovalStatus === "rejected" && investor.investorRejectionReason && (
+                      <div className="alert alert-error alert-sm">
+                        <span className="text-xs">
+                          <strong>Reason:</strong> {investor.investorRejectionReason}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

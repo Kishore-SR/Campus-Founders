@@ -36,6 +36,7 @@ const ChatPage = () => {
     queryFn: getStreamToken,
     enabled: !!authUser, // this will run only when authUser is available
   });
+
   useEffect(() => {
     const initChat = async () => {
       if (!tokenData?.token || !authUser || !targetUserId) return;
@@ -48,18 +49,13 @@ const ChatPage = () => {
         await client.connectUser(
           {
             id: authUser._id,
-            name: authUser.username,
+            name: authUser.fullName || authUser.username,
             image: authUser.profilePic,
           },
           tokenData.token
         );
 
-        //
         const channelId = [authUser._id, targetUserId].sort().join("-");
-
-        // you and me
-        // if i start the chat => channelId: [myId, yourId]
-        // if you start the chat => channelId: [yourId, myId]  => [myId,yourId]
 
         const currChannel = client.channel("messaging", channelId, {
           members: [authUser._id, targetUserId],
@@ -69,10 +65,10 @@ const ChatPage = () => {
 
         setChatClient(client);
         setChannel(currChannel);
+        setLoading(false);
       } catch (error) {
         console.error("Error initializing chat:", error);
         toast.error("Could not connect to chat. Please try again.");
-      } finally {
         setLoading(false);
       }
     };

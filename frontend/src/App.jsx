@@ -28,6 +28,9 @@ const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage.jsx"));
 const AdminStartupsPage = lazy(() => import("./pages/AdminStartupsPage.jsx"));
 const AdminInvestorsPage = lazy(() => import("./pages/AdminInvestorsPage.jsx"));
 const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage.jsx"));
+const GovtSchemesPage = lazy(() => import("./pages/GovtSchemesPage.jsx"));
+const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
+const PremiumPage = lazy(() => import("./pages/PremiumPage.jsx"));
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -45,15 +48,30 @@ const App = () => {
         <DefaultMeta />
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            {/* Landing Page - Public */}
             <Route
               path="/"
+              element={
+                !isAuthenticated ? (
+                  <LandingPage />
+                ) : isOnboarded ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Navigate to="/onboarding" replace />
+                )
+              }
+            />
+
+            {/* Home Page - Authenticated */}
+            <Route
+              path="/home"
               element={
                 isAuthenticated && isOnboarded ? (
                   <Layout showSidebar={true}>
                     <HomePage />
                   </Layout>
                 ) : (
-                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} replace />
                 )
               }
             />
@@ -63,7 +81,7 @@ const App = () => {
                 !isAuthenticated ? (
                   <SignUpPage />
                 ) : (
-                  <Navigate to={isOnboarded ? "/" : "/onboarding"} />
+                  <Navigate to={isOnboarded ? "/home" : "/onboarding"} replace />
                 )
               }
             />
@@ -73,7 +91,7 @@ const App = () => {
                 !isAuthenticated ? (
                   <LoginPage />
                 ) : (
-                  <Navigate to={isOnboarded ? "/" : "/onboarding"} />
+                  <Navigate to={isOnboarded ? "/home" : "/onboarding"} replace />
                 )
               }
             />
@@ -133,10 +151,10 @@ const App = () => {
                   !isOnboarded ? (
                     <OnboardingPage />
                   ) : (
-                    <Navigate to="/" />
+                    <Navigate to="/home" replace />
                   )
                 ) : (
-                  <Navigate to="/login" />
+                  <Navigate to="/login" replace />
                 )
               }
             />
@@ -191,6 +209,34 @@ const App = () => {
                 isAuthenticated && isOnboarded ? (
                   <Layout showSidebar={true}>
                     <InvestorsPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Government Schemes Page - Only for Founders */}
+            <Route
+              path="/govt-schemes"
+              element={
+                isAuthenticated && isOnboarded && authUser?.role === "student" ? (
+                  <Layout showSidebar={true}>
+                    <GovtSchemesPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Premium Page */}
+            <Route
+              path="/premium"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <PremiumPage />
                   </Layout>
                 ) : (
                   <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />

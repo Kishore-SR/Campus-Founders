@@ -59,15 +59,21 @@ const Navbar = () => {
         {/* ----- Mobile Layout (profile left, icons right) ----- */}
         <div className="flex items-center justify-between w-full sm:hidden">
           {/* Profile pic on left */}
-          <Link to="/">
+          <Link to="/home">
             <div className="flex rows items-center gap-2">
               <div className="avatar">
-                <div className="w-11 rounded-full border border-base-800">
-                  <img
-                    src={authUser?.profilePic}
-                    alt="User Avatar"
-                    rel="noreferrer"
-                  />
+                <div className="w-11 h-11 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
+                  {authUser?.profilePic && authUser.profilePic.trim() ? (
+                    <img
+                      src={authUser.profilePic}
+                      alt="User Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm w-full h-full">
+                      {authUser?.fullName?.charAt(0) || authUser?.username?.charAt(0) || "U"}
+                    </div>
+                  )}
                 </div>
               </div>
               {/* Display username in mobile view */}
@@ -112,7 +118,7 @@ const Navbar = () => {
           {/* Logo - only in the chat page */}
           {isChatPage && (
             <div className="pl-5 mr-auto">
-              <Link to="/" className="flex items-center gap-2.5">
+              <Link to="/home" className="flex items-center gap-2.5">
                 <Atom className="size-9 text-primary" />
                 <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
                   Campus Founders

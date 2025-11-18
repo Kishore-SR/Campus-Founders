@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Sparkles, Send, X, ExternalLink, TrendingUp, User } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { chatbotQuery } from "../lib/startup-api";
 import toast from "react-hot-toast";
+import useAuthUser from "../hooks/useAuthUser";
 
 const AIChatbot = () => {
+  const { authUser } = useAuthUser();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -88,10 +91,19 @@ const AIChatbot = () => {
     }
   };
 
+  const handleOpenChat = () => {
+    if (!authUser?.isPremium) {
+      toast.error("Premium subscription required for AI chat");
+      navigate("/premium");
+      return;
+    }
+    setIsOpen(true);
+  };
+
   if (!isOpen) {
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpenChat}
         className="fixed bottom-6 right-6 btn btn-circle btn-primary btn-lg shadow-lg z-50 hover:scale-110 transition-transform"
         title="Open AI Assistant"
       >
@@ -211,8 +223,18 @@ const AIChatbot = () => {
                       <div className="flex items-start gap-3">
                         {investor.profilePic && (
                           <div className="avatar flex-shrink-0">
-                            <div className="w-12 h-12 rounded-full">
-                              <img src={investor.profilePic} alt={investor.username} />
+                            <div className="w-12 h-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden">
+                              {investor.profilePic && investor.profilePic.trim() ? (
+                                <img
+                                  src={investor.profilePic}
+                                  alt={investor.username}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm w-full h-full">
+                                  {investor.fullName?.charAt(0) || investor.username?.charAt(0) || "I"}
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}

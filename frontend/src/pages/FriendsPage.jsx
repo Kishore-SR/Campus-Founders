@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { getUserFriends, getStreamToken } from "../lib/api";
 import { getLanguageFlag } from "../components/FriendCard";
 import toast from "react-hot-toast";
@@ -24,6 +24,7 @@ const FriendsPage = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const { authUser } = useAuthUser();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: friends = [], isLoading } = useQuery({
     queryKey: ["friends"],
@@ -48,7 +49,7 @@ const FriendsPage = () => {
       return false;
     }
 
-    const matchesSearch = friend.username
+    const matchesSearch = (friend.fullName || friend.username || "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesLanguage =
@@ -71,8 +72,19 @@ const FriendsPage = () => {
       return;
     }
 
-    if (!authUser || !tokenData?.token) {
+    if (!authUser) {
       toast.error("You need to be logged in to start a call");
+      return;
+    }
+
+    if (!authUser.isPremium) {
+      toast.error("Premium subscription required for video calls");
+      navigate("/premium");
+      return;
+    }
+
+    if (!tokenData?.token) {
+      toast.error("Unable to initialize call. Please try again.");
       return;
     }
 
@@ -82,7 +94,7 @@ const FriendsPage = () => {
       await client.connectUser(
         {
           id: authUser._id,
-          name: authUser.username,
+          name: authUser.fullName || authUser.username,
           image: authUser.profilePic,
         },
         tokenData.token
@@ -108,7 +120,7 @@ const FriendsPage = () => {
 
       // Show success toast with friend's name
       toast.success(
-        `Video call started! Share this link with @${friend.username}`
+        `Video call started! Share this link with ${friend.fullName || friend.username}`
       );
       // Open the call in a new window/tab
       window.open(callUrl, "_blank");
@@ -218,12 +230,18 @@ const FriendsPage = () => {
                 {/* Profile Picture Column */}
                 <div className="w-1/3 bg-gradient-to-br from-primary/20 to-secondary/20 p-6 flex items-center justify-center">
                   <div className="avatar">
-                    <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                      <img
-                        src={friend.profilePic}
-                        alt={friend.username}
-                        className="object-cover"
-                      />
+                    <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden">
+                      {friend.profilePic && friend.profilePic.trim() ? (
+                        <img
+                          src={friend.profilePic}
+                          alt={friend.fullName || friend.username}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-2xl w-full h-full">
+                          {friend.fullName?.charAt(0) || friend.username?.charAt(0) || "U"}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -232,28 +250,37 @@ const FriendsPage = () => {
                   <div className="flex flex-col h-full justify-between">
                     {/* User Info */}
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <h3 className="text-xl font-bold">@{friend.username}</h3>
+                      <h3 className="text-xl font-bold mb-2">
+                        {friend.fullName || friend.username}
+                      </h3>
+                      {/* Role badge and Focus on same line */}
+                      <div className="flex flex-wrap items-center gap-1.5 mb-3">
                         {(() => {
                           const getProfileLabel = (role) => {
                             // Ensure we have a role value
                             const userRole = role || friend.role || "normal";
                             switch (userRole) {
                               case "student":
-                                return { label: "🎓 Founder", badge: "badge-accent" };
+                                return { label: "🎓 Founder", badgeClass: "badge-accent" };
                               case "investor":
-                                return { label: "💼 Investor", badge: "badge-info" };
+                                return { label: "💼 Investor", badgeClass: "badge-info" };
                               default:
-                                return { label: "👤 Member", badge: "badge-ghost" };
+                                return { label: "👤 Member", badgeClass: "badge-primary" };
                             }
                           };
                           const profileInfo = getProfileLabel(friend.role);
                           return (
-                            <div className={`badge ${profileInfo.badge} badge-lg`}>
+                            <span className={`badge ${profileInfo.badgeClass} text-xs`}>
                               {profileInfo.label}
-                            </div>
+                            </span>
                           );
                         })()}
+                        {friend.currentFocus && (
+                          <span className="badge badge-secondary text-xs">
+                            {getLanguageFlag(friend.currentFocus)}
+                            <span className="font-bold">Focus</span>: {friend.currentFocus}
+                          </span>
+                        )}
                       </div>
                       {friend.bio && (
                         <div className="mt-2 mb-3 bg-base-100 rounded-lg p-2 border-l-2 border-secondary">
@@ -262,28 +289,23 @@ const FriendsPage = () => {
                           </p>
                         </div>
                       )}
-                      {/* Only show Focus, not Track */}
-                      {friend.currentFocus && (
-                        <div className="flex flex-wrap gap-3 mt-3 mb-4">
-                          <div className="flex items-center text-sm">
-                            <span className="mr-1 text-opacity-70">Focus:</span>
-                            {getLanguageFlag(friend.currentFocus)}
-                            <span className="font-medium">
-                              {friend.currentFocus}
-                            </span>
-                          </div>
-                        </div>
-                      )}
                     </div>
                     {/* Action Buttons */}
                     <div className="flex gap-8">
-                      <Link
-                        to={`/chat/${friend._id}`}
+                      <button
+                        onClick={() => {
+                          if (!authUser?.isPremium) {
+                            toast.error("Premium subscription required for chat");
+                            navigate("/premium");
+                          } else {
+                            navigate(`/chat/${friend._id}`);
+                          }
+                        }}
                         className="btn btn-primary btn-sm flex-1"
                       >
                         <MessageSquareIcon className="h-4 w-4 mr-2" />
                         Chat
-                      </Link>
+                      </button>
                       {/* Updated video call button */}
                       <button
                         onClick={() => handleVideoCall(friend)}
