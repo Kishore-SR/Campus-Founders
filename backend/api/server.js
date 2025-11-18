@@ -216,7 +216,7 @@ app.use("*", (req, res) => {
   });
 });
 
-// Connect to database
+// Log environment variables (but don't connect here - connection is lazy)
 console.log("MongoDB URI exists:", !!process.env.MONGODB_URI);
 console.log("Environment variables:", {
   NODE_ENV: process.env.NODE_ENV,
@@ -230,36 +230,8 @@ console.log("Environment variables:", {
     : "MISSING",
 });
 
-// Attempt database connection with retry logic
-let retries = 3;
-let connected = false;
-
-while (retries > 0 && !connected) {
-  try {
-    console.log(
-      `⏳ Attempting to connect to MongoDB (${retries} retries left)...`
-    );
-    await connectDB();
-    console.log("✅ Database connected successfully");
-    connected = true;
-  } catch (error) {
-    console.error(
-      `❌ Failed to connect to database (attempt ${4 - retries}/3):`,
-      error.message
-    );
-    retries--;
-
-    if (retries > 0) {
-      // Wait for a short period before retrying
-      console.log("⏳ Waiting 1 second before retrying...");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } else {
-      console.error(
-        "❌ All database connection attempts failed. API will continue but database-dependent features will not work."
-      );
-    }
-  }
-}
+// Note: Database connection is now lazy - it will connect on first request
+// This is better for serverless environments where connections should be established per request
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (error) => {

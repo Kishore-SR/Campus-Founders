@@ -109,7 +109,7 @@ export async function login(req, res) {
       });
     }
 
-    // Check database connection (for serverless environments)
+    // Ensure database connection (for serverless environments)
     const mongoose = (await import("mongoose")).default;
     if (mongoose.connection.readyState !== 1) {
       console.log("Database not connected. Attempting to connect...");
@@ -119,9 +119,18 @@ export async function login(req, res) {
         console.log("Database connected successfully");
       } catch (dbError) {
         console.error("Failed to connect to database:", dbError);
+        console.error("Error details:", {
+          name: dbError.name,
+          message: dbError.message,
+          stack: dbError.stack,
+        });
         return res.status(500).json({
           message: "Database connection error",
           error: "DB_CONNECTION_FAILED",
+          details:
+            process.env.NODE_ENV === "development"
+              ? dbError.message
+              : undefined,
         });
       }
     }
