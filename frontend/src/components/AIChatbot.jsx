@@ -71,7 +71,7 @@ const AIChatbot = () => {
         suggestions: null, // No suggestions for responses
       };
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
+    } catch {
       toast.error("Failed to get response from AI");
       const errorMessage = {
         type: "bot",

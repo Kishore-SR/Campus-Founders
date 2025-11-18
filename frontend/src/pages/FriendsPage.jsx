@@ -23,7 +23,7 @@ const FriendsPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const { authUser } = useAuthUser();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const { data: friends = [], isLoading } = useQuery({
@@ -225,7 +225,7 @@ const FriendsPage = () => {
             {filteredFriends.map((friend) => (
               <div
                 key={friend._id}
-                className="flex bg-base-200 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow border-l-4 border-primary"
+                className="flex bg-base-200 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow border border-primary/25 border-l-4 border-l-primary"
               >
                 {/* Profile Picture Column */}
                 <div className="w-1/3 bg-gradient-to-br from-primary/20 to-secondary/20 p-6 flex items-center justify-center">

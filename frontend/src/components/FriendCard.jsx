@@ -71,7 +71,8 @@ const FriendCard = ({ friend }) => {
 };
 export default FriendCard;
 
-export function getLanguageFlag(language) {
+// eslint-disable-next-line no-unused-vars
+export function getLanguageFlag(_language) {
   // Return null to remove all flag/icon symbols
   return null;
 }

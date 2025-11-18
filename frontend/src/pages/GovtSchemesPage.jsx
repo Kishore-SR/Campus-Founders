@@ -194,7 +194,7 @@ const GOVERNMENT_SCHEMES = [
 ];
 
 const GovtSchemesPage = () => {
-  const { theme } = useThemeStore();
+  const { theme: _theme } = useThemeStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
@@ -269,8 +269,8 @@ const GovtSchemesPage = () => {
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={`btn btn-sm ${selectedCategory === category
-                    ? "btn-primary"
-                    : "btn-outline"
+                  ? "btn-primary"
+                  : "btn-outline"
                   }`}
               >
                 {category}

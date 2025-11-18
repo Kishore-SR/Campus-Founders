@@ -71,7 +71,7 @@ const ProfilePage = () => {
   const {
     data: startupData,
     isLoading,
-    error,
+    error: _error,
   } = useQuery({
     queryKey: ["myStartup"],
     queryFn: getMyStartup,
@@ -645,7 +645,7 @@ const ProfilePage = () => {
                                 (sum, inv) => sum + inv.amount,
                                 0
                               );
-                              const hasPending = group.investments.some(
+                              const _hasPending = group.investments.some(
                                 (inv) => inv.status === "pending"
                               );
 
@@ -998,7 +998,7 @@ const StartupFounderInfo = ({ startupId, handleVideoCall }) => {
 
 // Investor Dashboard Component
 const InvestorDashboard = ({ authUser }) => {
-  const { theme } = useThemeStore();
+  const { theme: _theme } = useThemeStore();
   const { data: investments, isLoading } = useQuery({
     queryKey: ["myInvestments"],
     queryFn: getMyInvestments,
@@ -1575,7 +1575,7 @@ const UserActivitySection = ({ userId }) => {
             Your Reviews ({userReviews?.length || 0})
           </h2>
           {userReviews && userReviews.length > 0 ? (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {userReviews.map((review) => (
                 <div key={review._id} className="card bg-base-300">
                   <div className="card-body p-4">

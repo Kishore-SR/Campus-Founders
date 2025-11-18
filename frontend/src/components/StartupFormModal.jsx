@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { upsertStartup, submitStartupForApproval } from "../lib/startup-api";
 import toast from "react-hot-toast";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Upload } from "lucide-react";
 import { STARTUP_DOMAINS } from "../constants";
 
 const STORAGE_KEY = "startup_form_draft";
 
 const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
   const queryClient = useQueryClient();
+  const logoFileInputRef = useRef(null);
+  const screenshotFileInputRef = useRef(null);
 
   // Load from localStorage or use existing startup data
   const getInitialState = () => {
@@ -155,6 +157,9 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
       });
       setNewScreenshot("");
       setNewTeamMember({ name: "", designation: "", linkedinUrl: "" });
+      // Reset file inputs
+      if (logoFileInputRef.current) logoFileInputRef.current.value = "";
+      if (screenshotFileInputRef.current) screenshotFileInputRef.current.value = "";
     }
   }, [isOpen, existingStartup]);
 
@@ -178,6 +183,9 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
           localStorage.removeItem(STORAGE_KEY);
         }
       }
+      // Reset file inputs when opening modal
+      if (logoFileInputRef.current) logoFileInputRef.current.value = "";
+      if (screenshotFileInputRef.current) screenshotFileInputRef.current.value = "";
     }
   }, [isOpen, existingStartup]);
 
@@ -241,16 +249,6 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
     });
   };
 
-  const addScreenshot = () => {
-    if (newScreenshot.trim()) {
-      setFormData({
-        ...formData,
-        screenshots: [...formData.screenshots, newScreenshot],
-      });
-      setNewScreenshot("");
-    }
-  };
-
   const removeScreenshot = (index) => {
     setFormData({
       ...formData,
@@ -273,6 +271,77 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
       ...formData,
       team: formData.team.filter((_, i) => i !== index),
     });
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setFormData({ ...formData, logo: base64String });
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read image file");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleScreenshotUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      // Automatically add to screenshots list
+      setFormData({
+        ...formData,
+        screenshots: [...formData.screenshots, base64String],
+      });
+      // Clear file input
+      if (screenshotFileInputRef.current) {
+        screenshotFileInputRef.current.value = "";
+      }
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read image file");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData({ ...formData, logo: "" });
+    if (logoFileInputRef.current) {
+      logoFileInputRef.current.value = "";
+    }
   };
 
   if (!isOpen) return null;
@@ -384,15 +453,39 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Logo URL</span>
+                  <span className="label-text flex items-center gap-2">
+                    <Upload className="size-4" />
+                    Logo
+                  </span>
                 </label>
-                <input
-                  type="url"
-                  className="input input-bordered placeholder:opacity-40"
-                  value={formData.logo}
-                  onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-                  placeholder="https://..."
-                />
+                <div className="flex items-center gap-2">
+                  {formData.logo && (
+                    <img
+                      src={formData.logo}
+                      alt="Logo preview"
+                      className="w-12 h-12 object-cover rounded border flex-shrink-0"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  )}
+                  <input
+                    ref={logoFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="file-input file-input-bordered flex-1"
+                  />
+                  {formData.logo && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveLogo}
+                      className="btn btn-sm btn-ghost flex-shrink-0"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="form-control">
@@ -573,30 +666,34 @@ const StartupFormModal = ({ isOpen, onClose, existingStartup = null }) => {
           {/* Screenshots */}
           <div className="divider">Screenshots</div>
           <div className="space-y-2">
-            <div className="flex gap-2">
-              <input
-                type="url"
-                className="input input-bordered flex-1 placeholder:opacity-40"
-                value={newScreenshot}
-                onChange={(e) => setNewScreenshot(e.target.value)}
-                placeholder="Screenshot URL"
-              />
-              <button type="button" onClick={addScreenshot} className="btn btn-primary">
-                <Plus className="size-5" />
-              </button>
+            <input
+              ref={screenshotFileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleScreenshotUpload}
+              className="file-input file-input-bordered w-full"
+            />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {formData.screenshots.map((screenshot, index) => (
+                <div key={index} className="relative group bg-base-200 rounded border overflow-hidden">
+                  <img
+                    src={screenshot}
+                    alt={`Screenshot ${index + 1}`}
+                    className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeScreenshot(index)}
+                    className="absolute top-1 right-1 btn btn-xs btn-error opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </div>
+              ))}
             </div>
-            {formData.screenshots.map((screenshot, index) => (
-              <div key={index} className="flex items-center gap-2 bg-base-200 p-2 rounded">
-                <span className="flex-1 truncate text-sm">{screenshot}</span>
-                <button
-                  type="button"
-                  onClick={() => removeScreenshot(index)}
-                  className="btn btn-sm btn-ghost"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-            ))}
           </div>
 
           {/* Team Members */}

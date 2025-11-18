@@ -59,7 +59,7 @@ const SignUpPage = () => {
     }
   };
 
-  const { isPending, error, signupMutation } = useSignUp();
+  const { isPending, error: _error, signupMutation } = useSignUp();
   const handleSignup = async (e) => {
     e.preventDefault();
 

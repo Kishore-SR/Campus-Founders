@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Atom } from "lucide-react";
 import { Link } from "react-router";
 import { Helmet } from "react-helmet-async";
@@ -12,7 +12,7 @@ const LoginPage = () => {
   });
 
   // This is custom login hook - optimized version
-  const { isPending, error, loginMutation } = useLogin();
+  const { isPending, error: _error, loginMutation } = useLogin();
   const handleLogin = (e) => {
     e.preventDefault();
     loginMutation(loginData);

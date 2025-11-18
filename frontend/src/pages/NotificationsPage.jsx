@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Helmet } from "react-helmet-async";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { acceptFriendRequest, getFriendRequests } from "../lib/api";
@@ -67,7 +67,7 @@ const NotificationsPage = () => {
                     .map((request) => (
                       <div
                         key={request._id}
-                        className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+                        className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow border border-primary/25"
                       >
                         <div className="card-body p-4">
                           <div className="flex items-center justify-between">
@@ -159,7 +159,7 @@ const NotificationsPage = () => {
                       .map((notification) => (
                         <div
                           key={notification._id}
-                          className="card bg-base-200 shadow-sm"
+                          className="card bg-base-200 shadow-sm border border-primary/25"
                         >
                           {" "}
                           <div className="card-body p-4">

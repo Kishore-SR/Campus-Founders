@@ -136,7 +136,7 @@ const StartupsPage = () => {
         </div>
 
         {/* Search & Filters */}
-        <div className="card bg-base-200 shadow-lg">
+        <div className="card bg-base-200 shadow-lg border border-primary/25">
           <div className="card-body p-4">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search */}
@@ -196,7 +196,7 @@ const StartupsPage = () => {
               return (
                 <div
                   key={startup._id}
-                  className="card bg-base-200 shadow-lg hover:shadow-xl transition-all border border-base-300 hover:border-primary/50"
+                  className="card bg-base-200 shadow-lg hover:shadow-xl transition-all border border-primary/25 hover:border-primary/50"
                 >
                   <div className="card-body p-4 sm:p-6">
                     <div className="flex flex-col gap-4 items-start">
@@ -327,7 +327,7 @@ const StartupsPage = () => {
               );
             })
           ) : (
-            <div className="col-span-full card bg-base-200 shadow-lg">
+            <div className="col-span-full card bg-base-200 shadow-lg border border-primary/25">
               <div className="card-body text-center py-16">
                 <Filter className="size-16 mx-auto opacity-30" />
                 <h3 className="text-2xl font-bold mt-4">No startups found</h3>

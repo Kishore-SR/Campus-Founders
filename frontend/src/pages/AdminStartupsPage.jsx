@@ -31,7 +31,7 @@ const AdminStartupsPage = () => {
   });
 
   const startups = response?.startups || [];
-  const counts = response?.counts || {};
+  const _counts = response?.counts || {};
 
   const approveMutation = useMutation({
     mutationFn: approveStartup,

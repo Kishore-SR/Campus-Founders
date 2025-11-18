@@ -72,7 +72,7 @@ const AIRecommendationsSection = () => {
       {recommendations.map((startup) => (
         <div
           key={startup._id}
-          className="card bg-base-200 hover:shadow-lg transition-all border border-base-300 hover:border-primary/50"
+          className="card bg-base-200 hover:shadow-lg transition-all border border-primary/25 hover:border-primary/50"
         >
           <div className="card-body p-5 space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -334,7 +334,7 @@ const HomePage = () => {
                 <span className="loading loading-spinner loading-lg" />
               </div>
             ) : friends.length === 0 ? (
-              <div className="card bg-base-200 p-8 text-center">
+              <div className="card bg-base-200 p-8 text-center border border-primary/25">
                 <UsersIcon className="size-16 mx-auto opacity-30 mb-4" />
                 <h3 className="text-2xl font-bold mb-2">
                   No {authUser?.role === "student" ? "investors" : authUser?.role === "investor" ? "founders" : "connections"} yet
@@ -356,7 +356,7 @@ const HomePage = () => {
                   .map((friend) => (
                     <div
                       key={friend._id}
-                      className="card bg-base-200 hover:shadow-lg transition-all duration-300 group relative w-full sm:w-auto max-w-[95%] sm:max-w-full mx-auto sm:mx-0"
+                      className="card bg-base-200 hover:shadow-lg transition-all duration-300 border border-primary/25 group relative w-full sm:w-auto max-w-[95%] sm:max-w-full mx-auto sm:mx-0"
                     >
                       {friend.bio && (
                         <div className="dropdown dropdown-hover dropdown-end absolute right-2 top-2 z-10">
@@ -466,7 +466,7 @@ const HomePage = () => {
                     return (
                       <div
                         key={user._id}
-                        className="card bg-base-200 hover:shadow-lg transition-all duration-300"
+                        className="card bg-base-200 hover:shadow-lg transition-all duration-300 border border-primary/25"
                       >
                         <div className="card-body p-5 space-y-4">
                           <div className="flex items-center gap-3">

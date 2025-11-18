@@ -16,6 +16,7 @@ import {
   ExternalLink,
   CheckCircle,
   Clock,
+  Linkedin,
 } from "lucide-react";
 import PageLoader from "../components/PageLoader";
 import toast from "react-hot-toast";
@@ -128,7 +129,7 @@ const InvestorsPage = () => {
         </div>
 
         {/* Search and Filter */}
-        <div className="card bg-base-200">
+        <div className="card bg-base-200 border border-primary/25">
           <div className="card-body">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search */}
@@ -175,7 +176,7 @@ const InvestorsPage = () => {
         {/* Investors Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredInvestors?.length === 0 ? (
-            <div className="col-span-full card bg-base-200">
+            <div className="col-span-full card bg-base-200 border border-primary/25">
               <div className="card-body text-center">
                 <p className="opacity-70">No investors found</p>
               </div>
@@ -184,7 +185,7 @@ const InvestorsPage = () => {
             filteredInvestors?.map((investor) => (
               <div
                 key={investor._id}
-                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow"
+                className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow border border-primary/25"
               >
                 <div className="card-body">
                   {/* Profile */}
@@ -273,45 +274,51 @@ const InvestorsPage = () => {
                   )}
 
                   {/* Actions */}
-                  <div className="card-actions justify-end mt-4">
-                    {investor.linkedinUrl && (
-                      <a
-                        href={investor.linkedinUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-ghost btn-sm"
-                      >
-                        <ExternalLink className="size-4" />
-                      </a>
-                    )}
-                    {authUser && authUser._id !== investor._id && (() => {
-                      const status = getConnectionStatus(investor._id);
-                      if (status === "connected") {
-                        return (
-                          <button className="btn btn-success btn-sm" disabled>
-                            <CheckCircle className="size-4 mr-1" />
-                            Connected
-                          </button>
-                        );
-                      } else if (status === "pending") {
-                        return (
-                          <button className="btn btn-warning btn-sm" disabled>
-                            <Clock className="size-4 mr-1" />
-                            Pending
-                          </button>
-                        );
-                      } else {
-                        return (
-                          <button
-                            onClick={() => handleSendRequest(investor._id)}
-                            className="btn btn-primary btn-sm"
-                          >
-                            <UserPlus className="size-4 mr-1" />
-                            Connect
-                          </button>
-                        );
-                      }
-                    })()}
+                  <div className="card-actions justify-between mt-4">
+                    <div className="flex gap-2">
+                      {investor.linkedinUrl && (
+                        <a
+                          href={investor.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm"
+                          style={{ backgroundColor: '#0077B5', borderColor: '#0077B5', color: 'white' }}
+                        >
+                          <Linkedin className="size-4 mr-1" fill="currentColor" />
+                          LinkedIn
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {authUser && authUser._id !== investor._id && (() => {
+                        const status = getConnectionStatus(investor._id);
+                        if (status === "connected") {
+                          return (
+                            <button className="btn btn-success btn-sm" disabled>
+                              <CheckCircle className="size-4 mr-1" />
+                              Connected
+                            </button>
+                          );
+                        } else if (status === "pending") {
+                          return (
+                            <button className="btn btn-warning btn-sm" disabled>
+                              <Clock className="size-4 mr-1" />
+                              Pending
+                            </button>
+                          );
+                        } else {
+                          return (
+                            <button
+                              onClick={() => handleSendRequest(investor._id)}
+                              className="btn btn-primary btn-sm"
+                            >
+                              <UserPlus className="size-4 mr-1" />
+                              Connect
+                            </button>
+                          );
+                        }
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
