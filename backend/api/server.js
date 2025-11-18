@@ -5,6 +5,9 @@ import { connectDB } from "../src/lib/db.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "../src/routes/user.route.js";
 import chatRoutes from "../src/routes/chat.route.js";
+import startupRoutes from "../src/routes/startup.routes.js";
+import adminRoutes from "../src/routes/admin.routes.js";
+import investmentRoutes from "../src/routes/investment.routes.js";
 import debugRouter from "./debug.js";
 import cors from "cors";
 import path from "path";
@@ -18,7 +21,8 @@ app.use(
   cors({
     origin: function (origin, callback) {
       const allowedOrigins = [
-        "https://covalents.vercel.app",
+        "https://campus-founders.vercel.app",
+        "https://campus-founders-backend.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
       ];
@@ -139,6 +143,9 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/startups", startupRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/investments", investmentRoutes);
 app.use("/api/debug", debugRouter);
 
 // Global error handling middleware

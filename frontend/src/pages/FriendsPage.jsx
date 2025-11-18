@@ -43,8 +43,7 @@ const FriendsPage = () => {
       !friend ||
       !friend._id ||
       !friend.username ||
-      !friend.currentFocus ||
-      !friend.skillTrack
+      !friend.currentFocus
     ) {
       return false;
     }
@@ -54,18 +53,16 @@ const FriendsPage = () => {
       .includes(searchTerm.toLowerCase());
     const matchesLanguage =
       selectedLanguage === "all" ||
-      friend.currentFocus?.toLowerCase() === selectedLanguage.toLowerCase() ||
-      friend.skillTrack?.toLowerCase() === selectedLanguage.toLowerCase();
+      friend.currentFocus?.toLowerCase() === selectedLanguage.toLowerCase();
 
     return matchesSearch && matchesLanguage;
   });
   const languages = [
     ...new Set(
       friends
-        .filter((friend) => friend && friend._id)
-        .flatMap((friend) =>
-          [friend.currentFocus, friend.skillTrack].filter(Boolean)
-        )
+        .filter((friend) => friend && friend._id && friend.currentFocus)
+        .map((friend) => friend.currentFocus)
+        .filter(Boolean)
     ),
   ];
   const handleVideoCall = async (friend) => {
@@ -127,10 +124,10 @@ const FriendsPage = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-base-100 min-h-screen">
       <Helmet>
-        <title>Friends | Covalent</title>
+        <title>Connections | Campus Founders</title>
         <meta
           name="description"
-          content="Connect with your engineering friends on Covalent."
+          content="Connect with founders, investors, and members on Campus Founders."
         />
       </Helmet>
       <div className="container mx-auto space-y-8">
@@ -144,7 +141,7 @@ const FriendsPage = () => {
               <span className="badge badge-primary ml-2">{friends.length}</span>
             </h1>
             <p className="text-sm opacity-70 mt-1">
-              Connect and collaborate with your engineering partners
+              Connect and collaborate with founders, investors, and members
             </p>
           </div>
         </div>
@@ -155,8 +152,8 @@ const FriendsPage = () => {
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
               <input
                 type="text"
-                placeholder="Search friends by name..."
-                className="input input-bordered w-full pl-10 bg-base-100"
+                placeholder="Search connections by name..."
+                className="input input-bordered w-full pl-10 bg-base-100 placeholder:opacity-40"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -175,9 +172,8 @@ const FriendsPage = () => {
                 Filter by focus/track:
               </span>
               <button
-                className={`btn btn-sm ${
-                  selectedLanguage === "all" ? "btn-primary" : "btn-outline"
-                }`}
+                className={`btn btn-sm ${selectedLanguage === "all" ? "btn-primary" : "btn-outline"
+                  }`}
                 onClick={() => setSelectedLanguage("all")}
               >
                 All
@@ -185,11 +181,10 @@ const FriendsPage = () => {
               {languages.map((language) => (
                 <button
                   key={language}
-                  className={`btn btn-sm ${
-                    selectedLanguage === language.toLowerCase()
-                      ? "btn-primary"
-                      : "btn-outline"
-                  }`}
+                  className={`btn btn-sm ${selectedLanguage === language.toLowerCase()
+                    ? "btn-primary"
+                    : "btn-outline"
+                    }`}
                   onClick={() => setSelectedLanguage(language.toLowerCase())}
                 >
                   {getLanguageFlag(language)} {language}
@@ -206,11 +201,11 @@ const FriendsPage = () => {
         ) : filteredFriends.length === 0 ? (
           <div className="text-center py-16 bg-base-200 rounded-xl shadow-inner">
             <UserX2Icon className="mx-auto h-16 w-16 text-base-content/30" />
-            <h3 className="mt-4 text-xl font-semibold">No friends found</h3>
+            <h3 className="mt-4 text-xl font-semibold">No connections found</h3>
             <p className="mt-2 text-base-content/70">
               {searchTerm || selectedLanguage !== "all"
                 ? "Try changing your search or filter settings"
-                : "Connect with like-minded learners to see them here"}
+                : "Connect with founders, investors, and members to see them here"}
             </p>
           </div>
         ) : (
@@ -237,31 +232,48 @@ const FriendsPage = () => {
                   <div className="flex flex-col h-full justify-between">
                     {/* User Info */}
                     <div>
-                      <h3 className="text-xl font-bold">@{friend.username}</h3>
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <h3 className="text-xl font-bold">@{friend.username}</h3>
+                        {(() => {
+                          const getProfileLabel = (role) => {
+                            // Ensure we have a role value
+                            const userRole = role || friend.role || "normal";
+                            switch (userRole) {
+                              case "student":
+                                return { label: "🎓 Founder", badge: "badge-accent" };
+                              case "investor":
+                                return { label: "💼 Investor", badge: "badge-info" };
+                              default:
+                                return { label: "👤 Member", badge: "badge-ghost" };
+                            }
+                          };
+                          const profileInfo = getProfileLabel(friend.role);
+                          return (
+                            <div className={`badge ${profileInfo.badge} badge-lg`}>
+                              {profileInfo.label}
+                            </div>
+                          );
+                        })()}
+                      </div>
                       {friend.bio && (
                         <div className="mt-2 mb-3 bg-base-100 rounded-lg p-2 border-l-2 border-secondary">
                           <p className="text-sm italic opacity-80">
                             "{friend.bio}"
                           </p>
                         </div>
-                      )}{" "}
-                      <div className="flex flex-wrap gap-3 mt-3 mb-4">
-                        <div className="flex items-center text-sm">
-                          <span className="mr-1 text-opacity-70">Focus:</span>
-                          {getLanguageFlag(friend.currentFocus)}
-                          <span className="font-medium">
-                            {friend.currentFocus}
-                          </span>
+                      )}
+                      {/* Only show Focus, not Track */}
+                      {friend.currentFocus && (
+                        <div className="flex flex-wrap gap-3 mt-3 mb-4">
+                          <div className="flex items-center text-sm">
+                            <span className="mr-1 text-opacity-70">Focus:</span>
+                            {getLanguageFlag(friend.currentFocus)}
+                            <span className="font-medium">
+                              {friend.currentFocus}
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-xs opacity-50">•</span>
-                        <div className="flex items-center text-sm">
-                          <span className="mr-1 text-opacity-70">Track:</span>
-                          {getLanguageFlag(friend.skillTrack)}
-                          <span className="font-medium">
-                            {friend.skillTrack}
-                          </span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                     {/* Action Buttons */}
                     <div className="flex gap-8">

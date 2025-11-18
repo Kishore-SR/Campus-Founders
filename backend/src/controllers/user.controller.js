@@ -26,7 +26,7 @@ export async function getMyFriends(req, res) {
       .select("friends")
       .populate(
         "friends",
-        "username profilePic nativeLanguage learningLanguage bio"
+        "username profilePic nativeLanguage learningLanguage bio role"
       );
 
     res.status(200).json(user.friends);
@@ -158,6 +158,21 @@ export async function getOutgoingFriendReqs(req, res) {
     res.status(200).json(outgoingRequests);
   } catch (error) {
     console.log("Error in getOutgoingFriendReqs controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function getApprovedInvestors(req, res) {
+  try {
+    const investors = await User.find({
+      role: "investor",
+      investorApprovalStatus: "approved",
+      isOnboarded: true,
+    }).select("-password");
+
+    res.status(200).json(investors);
+  } catch (error) {
+    console.log("Error in getApprovedInvestors controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

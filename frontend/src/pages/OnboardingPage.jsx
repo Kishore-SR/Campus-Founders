@@ -5,12 +5,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { completeOnboarding } from "../lib/api.js";
 import {
+  CameraIcon,
   LoaderIcon,
   MapPinIcon,
   ShipWheelIcon,
   ShuffleIcon,
 } from "lucide-react";
-import { FOCUS_AREAS, SKILL_TRACKS } from "../constants";
+import { STARTUP_DOMAINS } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
 
 const OnboardingPage = () => {
@@ -18,10 +19,10 @@ const OnboardingPage = () => {
   const queryClient = useQueryClient();
   const [formState, setFormState] = useState({
     bio: authUser?.bio || "",
-    currentFocus: authUser?.nativeLanguage || "",
-    skillTrack: authUser?.learningLanguage || "",
+    interestedDomain: authUser?.nativeLanguage || "", // Using nativeLanguage field for interestedDomain
     location: authUser?.location || "",
     profilePic: authUser?.profilePic || "",
+    role: authUser?.role || "normal", // Role comes from signup, not editable
   });
 
   const { mutate: onboardingMutation, isPending } = useMutation({
@@ -55,10 +56,10 @@ const OnboardingPage = () => {
     <div className="min-h-screen bg-base-100 p-4 sm:p-6 lg:p-8">
       {" "}
       <Helmet>
-        <title>Complete Profile</title>
+        <title>Complete Profile | Campus Founders</title>
         <meta
           name="description"
-          content="Complete your engineering profile on Covalent to connect with like-minded peers."
+          content="Complete your profile on Campus Founders to connect with founders, investors and innovators."
         />
       </Helmet>
       <div className="max-w-3xl mx-auto">
@@ -71,6 +72,20 @@ const OnboardingPage = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">
                 Complete Your Profile
               </h1>
+
+              {/* Role Display (read-only from signup) */}
+              <div className="mb-4">
+                <div className="badge badge-primary badge-lg">
+                  {formState.role === "student" && "🎓 Student Founder"}
+                  {formState.role === "investor" && "💼 Investor"}
+                  {formState.role === "normal" && "👤 Community Member"}
+                </div>
+                <p className="text-xs opacity-70 mt-2">
+                  {formState.role === "student" && "You can create and manage your startup profile"}
+                  {formState.role === "investor" && "Connect with student founders and discover startups"}
+                  {formState.role === "normal" && "Browse startups, upvote and review"}
+                </p>
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* PROFILE PIC CONTAINER */}
@@ -128,67 +143,48 @@ const OnboardingPage = () => {
                     onChange={(e) =>
                       setFormState({ ...formState, bio: e.target.value })
                     }
-                    className="textarea textarea-bordered h-6"
-                    placeholder="Tell others about yourself and your engineering goals"
+                    className="textarea textarea-bordered h-24 placeholder:opacity-40"
+                    placeholder={
+                      formState.role === "student"
+                        ? "Tell us about yourself and your startup vision..."
+                        : formState.role === "investor"
+                          ? "Share your investment focus and background..."
+                          : "Tell us about yourself and your interests..."
+                    }
                   />
                 </div>
 
-                {/* LANGUAGES */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* NATIVE LANGUAGE */}{" "}
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Current Focus</span>
-                    </label>
-                    <select
-                      name="currentFocus"
-                      value={formState.currentFocus}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          currentFocus: e.target.value,
-                        })
-                      }
-                      className="select select-bordered w-full"
-                    >
-                      <option value="">Select your current focus</option>
-                      {FOCUS_AREAS.map((focus) => (
-                        <option
-                          key={`focus-${focus}`}
-                          value={focus.toLowerCase()}
-                        >
-                          {focus}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {/* SKILL TRACK */}
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Skill Track</span>
-                    </label>
-                    <select
-                      name="skillTrack"
-                      value={formState.skillTrack}
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          skillTrack: e.target.value,
-                        })
-                      }
-                      className="select select-bordered w-full"
-                    >
-                      <option value="">Select your skill track</option>
-                      {SKILL_TRACKS.map((track) => (
-                        <option
-                          key={`track-${track}`}
-                          value={track.toLowerCase()}
-                        >
-                          {track}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* INTERESTED DOMAIN */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Interested Domain</span>
+                  </label>
+                  <select
+                    name="interestedDomain"
+                    value={formState.interestedDomain}
+                    onChange={(e) =>
+                      setFormState({
+                        ...formState,
+                        interestedDomain: e.target.value,
+                      })
+                    }
+                    className="select select-bordered w-full"
+                  >
+                    <option value="">Select your interested domain</option>
+                    {STARTUP_DOMAINS.map((domain) => (
+                      <option
+                        key={`domain-${domain}`}
+                        value={domain.toLowerCase()}
+                      >
+                        {domain}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs opacity-70 mt-1">
+                    {formState.role === "student" && "The domain your startup focuses on"}
+                    {formState.role === "investor" && "The domains you're interested in investing"}
+                    {formState.role === "normal" && "The startup domains you're interested in"}
+                  </p>
                 </div>
 
                 {/* LOCATION */}
@@ -205,8 +201,8 @@ const OnboardingPage = () => {
                       onChange={(e) =>
                         setFormState({ ...formState, location: e.target.value })
                       }
-                      className="input input-bordered w-full pl-10"
-                      placeholder="City, State"
+                      className="input input-bordered w-full pl-10 placeholder:opacity-40"
+                      placeholder={formState.role === "student" ? "City, State (Your University Location)" : "City, State"}
                     />
                   </div>
                 </div>

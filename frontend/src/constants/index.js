@@ -186,6 +186,30 @@ export const SKILL_TRACKS = [
   "Cloud/Infra",
 ];
 
+// Startup Domains for Campus Founders
+export const STARTUP_DOMAINS = [
+  "FinTech",
+  "HealthTech",
+  "EdTech",
+  "AgriTech",
+  "E-commerce",
+  "SaaS",
+  "AI/ML",
+  "IoT",
+  "Blockchain",
+  "ClimateTech",
+  "PropTech",
+  "FoodTech",
+  "TravelTech",
+  "Gaming",
+  "Social Media",
+  "Media & Entertainment",
+  "Logistics",
+  "HR Tech",
+  "LegalTech",
+  "Other",
+];
+
 // Lists for anonymous username generation
 export const USERNAME_ADJECTIVES = [
   "Curious",

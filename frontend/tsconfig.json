@@ -9,9 +9,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "allowJs": true, // Optional if mixing JS and TS
-    "noEmit": true
+    "allowJs": true,
+    "noEmit": true,
+    "types": []
   },
-  "include": ["src"], 
+  "include": ["src"],
   "exclude": ["node_modules"]
 }

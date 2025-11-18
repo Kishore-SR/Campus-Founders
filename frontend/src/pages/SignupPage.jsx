@@ -1,88 +1,40 @@
 import { useState, useEffect } from "react";
-import { Atom, RefreshCw } from "lucide-react";
+import { Atom } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
 import emailjs from "emailjs-com";
 import { toast } from "react-hot-toast";
 import useSignUp from "../hooks/useSignUp.jsx";
 import { useThemeStore } from "../store/useThemeStore";
-import { USERNAME_ADJECTIVES, USERNAME_CHARACTERS } from "../constants";
-import { checkUsernameExists } from "../lib/api";
 import { Helmet } from "react-helmet-async";
 
 const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
     email: "",
     password: "",
-    username: "", // Username field only
+    fullName: "",
+    username: "", // Will be auto-generated from fullName
+    role: "normal", // Default role
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isRotating, setIsRotating] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  // Function to generate a random username
-  const generateRandomUsername = () => {
-    const randomAdjective =
-      USERNAME_ADJECTIVES[
-        Math.floor(Math.random() * USERNAME_ADJECTIVES.length)
-      ];
-    const randomCharacter =
-      USERNAME_CHARACTERS[
-        Math.floor(Math.random() * USERNAME_CHARACTERS.length)
-      ];
-    return `${randomAdjective}${randomCharacter}`;
+
+  // Function to generate username from full name
+  const generateUsernameFromName = (name) => {
+    if (!name) return "";
+    // Remove spaces, special chars, convert to lowercase, add random 3-digit number
+    const cleanName = name.replace(/[^a-zA-Z]/g, "");
+    const randomNum = Math.floor(100 + Math.random() * 900); // 3-digit number
+    return `${cleanName}${randomNum}`.toLowerCase();
   };
 
-  // Function to check if username exists and generate a new one if needed
-  const generateUniqueUsername = async () => {
-    let isUnique = false;
-    let username = "";
-    let attempts = 0;
-
-    // Try up to 5 times to get a unique username
-    while (!isUnique && attempts < 5) {
-      attempts++;
-      username = generateRandomUsername();
-
-      try {
-        const response = await checkUsernameExists(username);
-        isUnique = !response.exists;
-      } catch (error) {
-        console.error("Error checking username:", error);
-        // If there's an error, we'll assume it's unique and let the server validate
-        isUnique = true;
-      }
-    }
-
-    return username;
-  };
-
-  // Generate a username on component mount
+  // Auto-generate username when fullName changes
   useEffect(() => {
-    const initUsername = async () => {
-      const username = await generateUniqueUsername();
-      setSignupData((prev) => ({ ...prev, username }));
-    };
-
-    initUsername();
-  }, []);
-  // Function to regenerate username
-  const handleRegenerateUsername = async () => {
-    try {
-      setIsRotating(true);
-      const newUsername = await generateUniqueUsername();
-      setSignupData((prev) => ({ ...prev, username: newUsername }));
-      toast.success("New unique username generated!");
-    } catch (error) {
-      toast.error("Failed to generate a unique username. Please try again.");
-    } finally {
-      // Add a slight delay before stopping the rotation for a smoother effect
-      setTimeout(() => {
-        setIsRotating(false);
-      }, 500);
+    if (signupData.fullName) {
+      const generatedUsername = generateUsernameFromName(signupData.fullName);
+      setSignupData((prev) => ({ ...prev, username: generatedUsername }));
     }
-  };
+  }, [signupData.fullName]);
 
   const SERVICE_ID = "service_y948zbh";
   const TEMPLATE_ID = "template_cmwny1k";
@@ -155,10 +107,10 @@ const SignUpPage = () => {
     <div className="flex h-screen">
       {" "}
       <Helmet>
-        <title>Signup | Covalent</title>
+        <title>Signup | Campus Founders</title>
         <meta
           name="description"
-          content="Join Covalent - Where engineering students connect anonymously and build strong bonds through passion and purpose."
+          content="Join Campus Founders - Where student founders meet investors and build the next generation of startups."
         />
       </Helmet>
       <div
@@ -171,7 +123,7 @@ const SignUpPage = () => {
             <div className="mb-4 flex items-center justify-start gap-2">
               <Atom className="size-9 text-primary" />
               <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-                Covalent
+                Campus Founders
               </span>
             </div>
 
@@ -181,42 +133,58 @@ const SignUpPage = () => {
                   <div>
                     <h2 className="text-xl font-mono">Create an Account</h2>
                     <p className="text-sm opacity-70">
-                      Join the future engineers who value passion over identity
+                      Join founders, investors and innovators shaping the future
                     </p>
                   </div>{" "}
                   <div className="space-y-3">
-                    <div className="form-control w-full">
-                      <label className="label">
-                        <span className="label-text">Username</span>
-                      </label>
-                      <div className="flex gap-2">
+                    {/* I am a... and Full Name in same line for desktop */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="form-control w-full">
+                        <label className="label">
+                          <span className="label-text">I am a...</span>
+                        </label>
+                        <select
+                          className="select select-bordered w-full"
+                          value={signupData.role}
+                          onChange={(e) =>
+                            setSignupData({
+                              ...signupData,
+                              role: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="normal">Normal User</option>
+                          <option value="student">Student (Founder)</option>
+                          <option value="investor">Investor</option>
+                        </select>
+                        <p className="text-xs opacity-70 mt-1">
+                          {signupData.role === "student" && "Create and manage your startup"}
+                          {signupData.role === "investor" && "Connect with student founders"}
+                          {signupData.role === "normal" && "Browse, upvote, and review startups"}
+                        </p>
+                      </div>
+
+                      <div className="form-control w-full">
+                        <label className="label">
+                          <span className="label-text">Full Name</span>
+                        </label>
                         <input
                           type="text"
-                          className="input input-bordered w-full font-mono"
-                          value={signupData.username || "Generating..."}
-                          readOnly
+                          placeholder="John Doe"
+                          className="input input-bordered w-full placeholder:opacity-40"
+                          value={signupData.fullName}
+                          onChange={(e) =>
+                            setSignupData({
+                              ...signupData,
+                              fullName: e.target.value,
+                            })
+                          }
                           required
-                        />{" "}
-                        <button
-                          type="button"
-                          className="btn btn-square btn-outline"
-                          onClick={handleRegenerateUsername}
-                          title="Generate new username"
-                          disabled={!signupData.username || isRotating}
-                        >
-                          <RefreshCw
-                            className={`h-5 w-5 ${
-                              !signupData.username || isRotating
-                                ? "animate-spin"
-                                : ""
-                            } transition-all duration-300`}
-                          />
-                        </button>
-                      </div>{" "}
-                      <p className="text-xs opacity-70 mt-1">
-                        You'll stay anonymous, this fun name will be your
-                        identity!
-                      </p>
+                        />
+                        <p className="text-xs opacity-70 mt-1">
+                          Your username will be: @{signupData.username || "johndoe123"}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="form-control w-full">
@@ -226,7 +194,7 @@ const SignUpPage = () => {
                       <input
                         type="email"
                         placeholder="yourname@gmail.com"
-                        className="input input-bordered w-full"
+                        className="input input-bordered w-full placeholder:opacity-40"
                         value={signupData.email}
                         onChange={(e) =>
                           setSignupData({
@@ -245,7 +213,7 @@ const SignUpPage = () => {
                       <input
                         type="password"
                         placeholder="∗∗∗∗∗∗"
-                        className="input input-bordered w-full"
+                        className="input input-bordered w-full placeholder:opacity-40"
                         value={signupData.password}
                         onChange={(e) =>
                           setSignupData({
@@ -316,17 +284,17 @@ const SignUpPage = () => {
               <div className="relative aspect-square max-w-sm mx-auto">
                 <img
                   src="/signup.png"
-                  alt="Engineering connection"
+                  alt="Campus Founders community"
                   className="w-full h-full"
                 />
               </div>
               <div className="text-center space-y-3 mt-6">
                 <h2 className="text-xl font-semibold">
-                  You’re not the only one chasing dreams
+                  Where Student Ideas Meet Investor Vision
                 </h2>{" "}
                 <p className="opacity-70">
-                  Find like-minded students, collaborate on ideas and level up
-                  without revealing your identity
+                  Connect with founders building tomorrow, investors backing
+                  innovation, and a community celebrating startup culture
                 </p>
               </div>
             </div>

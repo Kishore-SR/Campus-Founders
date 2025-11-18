@@ -25,10 +25,10 @@ const LoginPage = () => {
       data-theme={theme}
     >
       <Helmet>
-        <title>Login | Covalent</title>
+        <title>Login | Campus Founders</title>
         <meta
           name="description"
-          content="Log in to Covalent - Where engineering students connect anonymously and build strong bonds through passion and purpose."
+          content="Log in to Campus Founders - Where student founders meet investors and build the next generation of startups."
         />
       </Helmet>
       <div className="border border-primary/25 flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-base-100 rounded-xl shadow-lg overflow-hidden">
@@ -38,7 +38,7 @@ const LoginPage = () => {
           <div className="mb-4 flex items-center justify-start gap-2">
             <Atom className="size-9 text-primary" />
             <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary  tracking-wider">
-              Covalent
+              Campus Founders
             </span>
           </div>
 
@@ -48,7 +48,7 @@ const LoginPage = () => {
                 <div>
                   <h2 className="text-xl font-semibold">Welcome Back</h2>
                   <p className="text-sm opacity-70">
-                    Sign in and hustle with others chasing the same goals
+                    Sign in and connect with founders, investors and innovators
                   </p>
                 </div>
 
@@ -60,7 +60,7 @@ const LoginPage = () => {
                     <input
                       type="email"
                       placeholder="yourname@gmail.com"
-                      className="input input-bordered w-full"
+                      className="input input-bordered w-full placeholder:opacity-40"
                       value={loginData.email}
                       onChange={(e) =>
                         setLoginData({ ...loginData, email: e.target.value })
@@ -76,7 +76,7 @@ const LoginPage = () => {
                     <input
                       type="password"
                       placeholder="∗∗∗∗∗∗"
-                      className="input input-bordered w-full"
+                      className="input input-bordered w-full placeholder:opacity-40"
                       value={loginData.password}
                       onChange={(e) =>
                         setLoginData({ ...loginData, password: e.target.value })
@@ -124,18 +124,18 @@ const LoginPage = () => {
             <div className="relative aspect-square max-w-sm mx-auto">
               <img
                 src="/login.png"
-                alt="Engineering connection illustration"
+                alt="Campus Founders community"
                 className="w-full h-full"
               />
             </div>
 
             <div className="text-center space-y-3 mt-6">
               <h2 className="text-xl font-semibold">
-                You’re not the only one chasing dreams
+                Where Student Ideas Meet Investor Vision
               </h2>{" "}
               <p className="opacity-70">
-                Find like-minded students, collaborate on ideas and level up
-                without revealing your identity
+                Connect with founders building tomorrow, investors backing
+                innovation, and a community celebrating startup culture
               </p>
             </div>
           </div>

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { upsertStreamUser } from "../lib/stream.js";
 
 export async function signup(req, res) {
-  const { email, password, username } = req.body;
+  const { email, password, username, fullName, role } = req.body;
 
   try {
     // Check if JWT_SECRET_KEY exists
@@ -17,6 +17,13 @@ export async function signup(req, res) {
 
     if (!email || !password || !username) {
       return res.status(400).json({ message: "Please fill all the fields" });
+    }
+
+    // Validate role if provided
+    if (role && !["student", "investor", "normal"].includes(role)) {
+      return res.status(400).json({
+        message: "Invalid role. Must be student, investor, or normal",
+      });
     }
 
     if (password.length < 6) {
@@ -51,7 +58,9 @@ export async function signup(req, res) {
       email,
       password,
       username,
+      fullName: fullName || "", // Include fullName if provided
       profilePic: randomAvatrar,
+      role: role || "normal", // Default to 'normal' if not provided
     });
 
     try {
@@ -154,17 +163,24 @@ export async function onboard(req, res) {
   try {
     const userId = req.user._id;
 
-    const { bio, nativeLanguage, learningLanguage, location } = req.body;
+    const { bio, nativeLanguage, learningLanguage, location, role } = req.body;
 
-    if (!bio || !nativeLanguage || !learningLanguage || !location) {
+    // Required fields: bio, interestedDomain (nativeLanguage), and location
+    if (!bio || !nativeLanguage || !location) {
       return res.status(400).json({
-        message: "All fields are required",
+        message: "All required fields must be filled",
         missingFields: [
           !bio && "bio",
-          !nativeLanguage && "nativeLanguage",
-          !learningLanguage && "learningLanguage",
+          !nativeLanguage && "interestedDomain",
           !location && "location",
         ].filter(Boolean),
+      });
+    }
+
+    // Validate role if provided
+    if (role && !["student", "investor", "normal"].includes(role)) {
+      return res.status(400).json({
+        message: "Invalid role. Must be student, investor, or normal",
       });
     }
 

@@ -45,9 +45,44 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    role: {
+      type: String,
+      enum: ["student", "investor", "normal", "admin"],
+      default: "normal",
+    },
     isOnboarded: {
       type: Boolean,
       default: false,
+    },
+    // Investor-specific approval
+    investorApprovalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: function () {
+        return this.role === "investor" ? "pending" : "approved";
+      },
+    },
+    investorRejectionReason: {
+      type: String,
+      default: "",
+    },
+    // Investor-specific fields
+    firm: {
+      type: String,
+      default: "",
+    },
+    investorRole: {
+      type: String,
+      default: "",
+    },
+    ticketSize: {
+      type: String,
+      default: "",
+    },
+    investmentDomains: [String],
+    linkedinUrl: {
+      type: String,
+      default: "",
     },
     friends: [
       {

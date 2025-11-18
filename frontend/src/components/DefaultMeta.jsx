@@ -2,23 +2,23 @@ import { Helmet } from "react-helmet-async";
 
 const DefaultMeta = () => {
   return (
-    <Helmet defaultTitle="Covalent Community" titleTemplate="%s">
+    <Helmet defaultTitle="Campus Founders" titleTemplate="%s | Campus Founders">
       <meta
         name="description"
-        content="Where engineering students connect anonymously and build strong bonds through passion and purpose."
+        content="Where student founders, investors, and innovators connect to build the next generation of startups."
       />
       <meta property="og:type" content="website" />
-      <meta property="og:site_name" content="Covalent" />
-      <meta property="og:title" content="Covalent Community" />
+      <meta property="og:site_name" content="Campus Founders" />
+      <meta property="og:title" content="Campus Founders" />
       <meta
         property="og:description"
-        content="Where engineering students connect anonymously and build strong bonds through passion and purpose."
+        content="Where student founders, investors, and innovators connect to build the next generation of startups."
       />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Covalent Community" />
+      <meta name="twitter:title" content="Campus Founders" />
       <meta
         name="twitter:description"
-        content="Where engineering students connect anonymously and build strong bonds through passion and purpose."
+        content="Where student founders, investors, and innovators connect to build the next generation of startups."
       />
     </Helmet>
   );

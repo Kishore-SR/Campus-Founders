@@ -5,6 +5,9 @@ import { connectDB } from "./lib/db.js";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.route.js";
+import startupRoutes from "./routes/startup.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import investmentRoutes from "./routes/investment.routes.js";
 import cors from "cors";
 import path from "path";
 
@@ -17,7 +20,8 @@ app.use(
   cors({
     origin: function (origin, callback) {
       const allowedOrigins = [
-        "https://covalents.vercel.app",
+        "https://campus-founders.vercel.app",
+        "https://campus-founders-backend.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
       ];
@@ -73,7 +77,7 @@ app.get("/", (req, res) => {
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
-    message: "Covalent API is running",
+    message: "Campus Founders API is running",
     time: new Date().toISOString(),
     env: {
       JWT_SECRET_KEY: process.env.JWT_SECRET_KEY ? "EXISTS" : "MISSING",
@@ -89,6 +93,9 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/startups", startupRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/investments", investmentRoutes);
 
 // Global error handling middleware
 app.use((error, req, res, next) => {
@@ -198,4 +205,3 @@ process.on("unhandledRejection", (reason, promise) => {
 startServer();
 
 export default app;
-

@@ -9,6 +9,7 @@ import Layout from "./components/Layout.jsx";
 import { useThemeStore } from "./store/useThemeStore.js";
 import FriendsPage from "./pages/FriendsPage.jsx";
 import DefaultMeta from "./components/DefaultMeta.jsx";
+import AIChatbot from "./components/AIChatbot.jsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx"));
 const SignUpPage = lazy(() => import("./pages/SignupPage.jsx"));
@@ -18,6 +19,15 @@ const CallPage = lazy(() => import("./pages/CallPage.jsx"));
 const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage.jsx"));
 const VerifyOTPPage = lazy(() => import("./pages/VerifyOTPPage.jsx"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage.jsx"));
+const StartupsPage = lazy(() => import("./pages/StartupsPage.jsx"));
+const StartupDetailPage = lazy(() => import("./pages/StartupDetailPage.jsx"));
+const InvestorsPage = lazy(() => import("./pages/InvestorsPage.jsx"));
+const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage.jsx"));
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage.jsx"));
+const AdminStartupsPage = lazy(() => import("./pages/AdminStartupsPage.jsx"));
+const AdminInvestorsPage = lazy(() => import("./pages/AdminInvestorsPage.jsx"));
+const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage.jsx"));
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -81,7 +91,7 @@ const App = () => {
             />
 
             <Route
-              path="/friends"
+              path="/connections"
               element={
                 isAuthenticated && isOnboarded ? (
                   <Layout showSidebar={true}>
@@ -131,8 +141,102 @@ const App = () => {
               }
             />
             <Route path="/verify-otp" element={<VerifyOTPPage />} />
+
+            {/* Profile Page */}
+            <Route
+              path="/profile"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <ProfilePage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Startups Page */}
+            <Route
+              path="/startups"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <StartupsPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Startup Detail Page */}
+            <Route
+              path="/startups/:id"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <StartupDetailPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Investors Page */}
+            <Route
+              path="/investors"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <InvestorsPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <Layout showSidebar={false}>
+                  <AdminDashboardPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <Layout showSidebar={false}>
+                  <AdminUsersPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/admin/startups"
+              element={
+                <Layout showSidebar={false}>
+                  <AdminStartupsPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/admin/investors"
+              element={
+                <Layout showSidebar={false}>
+                  <AdminInvestorsPage />
+                </Layout>
+              }
+            />
           </Routes>
         </Suspense>
+
+        {/* AI Chatbot - Available on all pages */}
+        {isAuthenticated && isOnboarded && <AIChatbot />}
 
         <Toaster />
       </div>

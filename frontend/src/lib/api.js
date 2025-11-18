@@ -23,8 +23,10 @@ export const getAuthUser = async () => {
       return {
         ...res.data,
         // Map backend fields to our new field names in the frontend
-        currentFocus: res.data.nativeLanguage,
-        skillTrack: res.data.learningLanguage,
+        interestedDomain: res.data.nativeLanguage || "",
+        currentFocus: res.data.nativeLanguage || "", // Keep for backward compatibility
+        skillTrack: res.data.learningLanguage || "", // Keep for backward compatibility
+        role: res.data.role || "normal", // Include role with default
       };
     }
 
@@ -45,10 +47,12 @@ export const completeOnboarding = async (userData) => {
   // Map new field names to the backend field names
   const mappedUserData = {
     ...userData,
-    // Map currentFocus to nativeLanguage for the backend
-    nativeLanguage: userData.currentFocus,
-    // Map skillTrack to learningLanguage for the backend
-    learningLanguage: userData.skillTrack,
+    // Map interestedDomain to nativeLanguage for the backend (reusing field)
+    nativeLanguage: userData.interestedDomain,
+    // Keep learningLanguage empty or use a default (no longer used for skill track)
+    learningLanguage: userData.interestedDomain || "",
+    // Include role if provided
+    role: userData.role,
   };
 
   const response = await axiosInstance.post("/auth/onboarding", mappedUserData);
@@ -64,6 +68,7 @@ export async function getUserFriends() {
       ...friend,
       currentFocus: friend.nativeLanguage,
       skillTrack: friend.learningLanguage,
+      role: friend.role || "normal",
     }));
   }
 
@@ -79,6 +84,7 @@ export async function getRecommendedUsers() {
       ...user,
       currentFocus: user.nativeLanguage,
       skillTrack: user.learningLanguage,
+      role: user.role || "normal",
     }));
   }
 
@@ -111,6 +117,7 @@ export async function getFriendRequests() {
           ...req.sender,
           currentFocus: req.sender.nativeLanguage,
           skillTrack: req.sender.learningLanguage,
+          role: req.sender.role || "normal",
         },
       }));
     }
@@ -126,6 +133,7 @@ export async function getFriendRequests() {
           ...req.sender,
           currentFocus: req.sender.nativeLanguage,
           skillTrack: req.sender.learningLanguage,
+          role: req.sender.role || "normal",
         },
       }));
     }
