@@ -17,9 +17,31 @@ const useAuthUser = () => {
         return await getAuthUser();
       } catch (error) {
         console.error("Error in getAuthUser:", error);
-        // If there's an unauthorized error, clear the token
+        // Only clear token on actual authentication failures, not validation errors
         if (error.response?.status === 401) {
-          localStorage.removeItem("token");
+          const errorMessage = error.response?.data?.message || "";
+          const errorType = error.response?.data?.error || "";
+
+          // Only clear token for actual authentication errors
+          const isAuthError =
+            errorMessage.includes("Unauthorized") ||
+            errorMessage.includes("token") ||
+            errorMessage.includes("authentication") ||
+            errorMessage.includes("logged in") ||
+            errorType === "TOKEN_EXPIRED" ||
+            errorType === "INVALID_TOKEN" ||
+            errorMessage.includes("User not found");
+
+          // Don't clear token for validation errors
+          const isValidationError =
+            errorMessage.includes("Invalid") ||
+            errorMessage.includes("must be") ||
+            errorMessage.includes("format") ||
+            errorMessage.includes("required");
+
+          if (isAuthError && !isValidationError) {
+            localStorage.removeItem("token");
+          }
         }
         // Return null user instead of throwing to prevent error state
         return { user: null };

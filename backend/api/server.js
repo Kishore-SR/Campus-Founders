@@ -57,8 +57,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parsing middleware
-app.use(express.json({ limit: "10mb" }));
+// Body parsing middleware - increased limit for base64 encoded images
+// Base64 encoding increases file size by ~33%, so we need more headroom
+// 50MB should handle logo + multiple screenshots comfortably
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
 
 // Health check endpoints
@@ -149,6 +152,21 @@ app.use("/api/startups", startupRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/investments", investmentRoutes);
 app.use("/api/debug", debugRouter);
+
+// Handle payload too large errors (413)
+app.use((error, req, res, next) => {
+  if (error.type === "entity.too.large") {
+    return res.status(413).json({
+      message: "Request payload too large",
+      error:
+        "File size exceeds the maximum allowed limit. Please compress your images or reduce the number of files.",
+      type: "PAYLOAD_TOO_LARGE",
+      maxSize: "50MB",
+      suggestion: "Try compressing images before uploading",
+    });
+  }
+  next(error);
+});
 
 // Global error handling middleware
 app.use((error, req, res, next) => {

@@ -74,11 +74,90 @@ const StartupsPage = () => {
 
   const { mutate: upvoteMutation } = useMutation({
     mutationFn: toggleUpvote,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["startups"]);
+    onMutate: async (startupId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries(["startups"]);
+      await queryClient.cancelQueries(["ai-search", debouncedSearchTerm]);
+
+      // Snapshot the previous value
+      const previousStartups = queryClient.getQueryData(["startups", { search: debouncedSearchTerm, category: selectedCategory }]);
+      const previousAISearch = queryClient.getQueryData(["ai-search", debouncedSearchTerm]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(["startups", { search: debouncedSearchTerm, category: selectedCategory }], (old) => {
+        if (!old) return old;
+        return old.map((startup) => {
+          if (startup._id === startupId) {
+            const userId = authUser?._id?.toString();
+            const isCurrentlyUpvoted = startup.upvotes?.some(
+              (upvote) => (upvote._id || upvote)?.toString() === userId
+            ) || startup.upvotes?.includes(userId);
+
+            return {
+              ...startup,
+              upvotes: isCurrentlyUpvoted
+                ? startup.upvotes.filter((upvote) => {
+                  const upvoteId = (upvote._id || upvote)?.toString();
+                  return upvoteId !== userId;
+                })
+                : [...(startup.upvotes || []), userId],
+              upvoteCount: isCurrentlyUpvoted
+                ? Math.max(0, (startup.upvoteCount || startup.upvotes?.length || 0) - 1)
+                : (startup.upvoteCount || startup.upvotes?.length || 0) + 1,
+            };
+          }
+          return startup;
+        });
+      });
+
+      // Also update AI search results if they exist
+      if (previousAISearch?.results) {
+        queryClient.setQueryData(["ai-search", debouncedSearchTerm], (old) => {
+          if (!old?.results) return old;
+          return {
+            ...old,
+            results: old.results.map((startup) => {
+              if (startup._id === startupId) {
+                const userId = authUser?._id?.toString();
+                const isCurrentlyUpvoted = startup.upvotes?.some(
+                  (upvote) => (upvote._id || upvote)?.toString() === userId
+                ) || startup.upvotes?.includes(userId);
+
+                return {
+                  ...startup,
+                  upvotes: isCurrentlyUpvoted
+                    ? startup.upvotes.filter((upvote) => {
+                      const upvoteId = (upvote._id || upvote)?.toString();
+                      return upvoteId !== userId;
+                    })
+                    : [...(startup.upvotes || []), userId],
+                  upvoteCount: isCurrentlyUpvoted
+                    ? Math.max(0, (startup.upvoteCount || startup.upvotes?.length || 0) - 1)
+                    : (startup.upvoteCount || startup.upvotes?.length || 0) + 1,
+                };
+              }
+              return startup;
+            }),
+          };
+        });
+      }
+
+      return { previousStartups, previousAISearch };
     },
-    onError: () => {
-      toast.error("Please login to upvote");
+    onError: (err, startupId, context) => {
+      // Rollback on error
+      if (context?.previousStartups) {
+        queryClient.setQueryData(["startups", { search: debouncedSearchTerm, category: selectedCategory }], context.previousStartups);
+      }
+      if (context?.previousAISearch) {
+        queryClient.setQueryData(["ai-search", debouncedSearchTerm], context.previousAISearch);
+      }
+      toast.error("Failed to upvote. Please try again.");
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
+      queryClient.invalidateQueries(["startups"]);
+      queryClient.invalidateQueries(["ai-search"]);
     },
   });
 
@@ -188,7 +267,11 @@ const StartupsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {startups && startups.length > 0 ? (
             startups.map((startup) => {
-              const isUpvoted = startup.upvotes?.includes(authUser?._id);
+              // Properly check if user has upvoted by comparing IDs as strings
+              const userId = authUser?._id?.toString();
+              const isUpvoted = startup.upvotes?.some(
+                (upvote) => (upvote._id || upvote)?.toString() === userId
+              ) || startup.upvotes?.includes(userId);
               const truncatedDescription = startup.description?.length > 150
                 ? startup.description.substring(0, 150) + "..."
                 : startup.description;

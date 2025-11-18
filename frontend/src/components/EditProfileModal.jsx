@@ -91,8 +91,28 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     },
     onError: (error) => {
       console.error("Update profile error:", error);
-      // Only show error toast if it's not already handled
+
+      // Don't clear token on validation errors - handle them gracefully
+      const status = error.response?.status;
       const errorMessage = error.response?.data?.message || error.message || "Failed to update profile";
+
+      // Only show error toast - don't let axios interceptor clear token unnecessarily
+      if (status === 401) {
+        // Check if it's actually an auth error or just a validation error
+        const isValidationError =
+          errorMessage.includes("Invalid") ||
+          errorMessage.includes("must be") ||
+          errorMessage.includes("format") ||
+          errorMessage.includes("required");
+
+        if (isValidationError) {
+          // It's a validation error, show the message without clearing token
+          toast.error(errorMessage);
+          return;
+        }
+      }
+
+      // Show error message for other errors
       toast.error(errorMessage);
     },
   });

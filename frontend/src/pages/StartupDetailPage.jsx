@@ -128,11 +128,54 @@ const StartupDetailPage = () => {
 
   const upvoteMutation = useMutation({
     mutationFn: () => toggleUpvote(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(["startup", id]);
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries(["startup", id]);
+
+      // Snapshot the previous value
+      const previousResponse = queryClient.getQueryData(["startup", id]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(["startup", id], (old) => {
+        if (!old?.startup) return old;
+
+        const userId = authUser?._id?.toString();
+        const startup = old.startup;
+        const isCurrentlyUpvoted = startup.upvotes?.some(
+          (upvote) => (upvote._id || upvote)?.toString() === userId
+        ) || startup.upvotes?.includes(userId);
+
+        const updatedStartup = {
+          ...startup,
+          upvotes: isCurrentlyUpvoted
+            ? startup.upvotes.filter((upvote) => {
+              const upvoteId = (upvote._id || upvote)?.toString();
+              return upvoteId !== userId;
+            })
+            : [...(startup.upvotes || []), userId],
+          upvoteCount: isCurrentlyUpvoted
+            ? Math.max(0, (startup.upvoteCount || startup.upvotes?.length || 0) - 1)
+            : (startup.upvoteCount || startup.upvotes?.length || 0) + 1,
+        };
+
+        return {
+          ...old,
+          startup: updatedStartup,
+        };
+      });
+
+      return { previousResponse };
     },
-    onError: () => {
-      toast.error("Please login to upvote");
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousResponse) {
+        queryClient.setQueryData(["startup", id], context.previousResponse);
+      }
+      toast.error("Failed to upvote. Please try again.");
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
+      queryClient.invalidateQueries(["startup", id]);
     },
   });
 
@@ -223,7 +266,7 @@ const StartupDetailPage = () => {
   }
 
   const stats = {
-    upvotes: startup?.upvotes?.length || 0,
+    upvotes: startup?.upvoteCount || startup?.upvotes?.length || 0,
     reviews: apiStats.totalReviews || reviews.length || 0,
     avgRating: parseFloat(apiStats.avgRating) || 0,
   };

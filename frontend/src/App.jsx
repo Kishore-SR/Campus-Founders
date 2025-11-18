@@ -31,6 +31,9 @@ const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage.jsx"));
 const GovtSchemesPage = lazy(() => import("./pages/GovtSchemesPage.jsx"));
 const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
 const PremiumPage = lazy(() => import("./pages/PremiumPage.jsx"));
+const ResourcesPage = lazy(() => import("./pages/ResourcesPage.jsx"));
+const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage.jsx"));
+const LessonPage = lazy(() => import("./pages/LessonPage.jsx"));
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -237,6 +240,48 @@ const App = () => {
                 isAuthenticated && isOnboarded ? (
                   <Layout showSidebar={true}>
                     <PremiumPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Resources Page */}
+            <Route
+              path="/resources"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <ResourcesPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Course Detail Page */}
+            <Route
+              path="/resources/:courseId"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <CourseDetailPage />
+                  </Layout>
+                ) : (
+                  <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+                )
+              }
+            />
+
+            {/* Lesson Page */}
+            <Route
+              path="/resources/:courseId/lesson/:lessonId"
+              element={
+                isAuthenticated && isOnboarded ? (
+                  <Layout showSidebar={true}>
+                    <LessonPage />
                   </Layout>
                 ) : (
                   <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />

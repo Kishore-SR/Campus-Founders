@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { Atom, BellIcon, HomeIcon, UsersIcon, RocketIcon, TrendingUpIcon, UserIcon, FileText, Crown } from "lucide-react";
+import { Atom, BellIcon, HomeIcon, UsersIcon, RocketIcon, TrendingUpIcon, UserIcon, FileText, Crown, BookOpen } from "lucide-react";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
@@ -44,6 +44,15 @@ const Sidebar = () => {
         >
           <TrendingUpIcon className="size-5 text-base-content opacity-70" />
           <span>Investors</span>
+        </Link>
+
+        <Link
+          to="/resources"
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath.startsWith("/resources") ? "btn-active" : ""
+            }`}
+        >
+          <BookOpen className="size-5 text-base-content opacity-70" />
+          <span>Resources</span>
         </Link>
 
         {/* Govt Schemes - Only for Founders */}

@@ -507,43 +507,180 @@ export function predictInvestmentPotential(startup) {
  * Simple AI Chatbot - Rule-based assistant
  * Handles common queries about the platform
  */
-export function processChatbotQuery(query) {
+export function processChatbotQuery(query, user = null) {
   if (!query)
     return { response: "How can I help you today?", type: "greeting" };
 
   const lowerQuery = query.toLowerCase().trim();
+  const userName = user?.fullName || user?.username || "there";
 
-  // Greeting patterns
+  // Greeting patterns - personalized
   if (
-    /^(hi|hello|hey|greetings|good morning|good afternoon|good evening)/.test(
+    /^(hi|hello|hey|greetings|good morning|good afternoon|good evening|sup|what's up|wassup)/.test(
       lowerQuery
     )
   ) {
+    const greeting = lowerQuery.includes("good morning")
+      ? "Good morning"
+      : lowerQuery.includes("good afternoon")
+      ? "Good afternoon"
+      : lowerQuery.includes("good evening")
+      ? "Good evening"
+      : "Hello";
+
     return {
-      response:
-        "Hello! I'm your AI assistant. I can help you with:\n• Finding startups\n• Investment recommendations\n• Platform navigation\n• Startup information\n\nWhat would you like to know?",
+      response: `${greeting} ${userName}! 👋 I'm your AI assistant for Campus Founders. I can help you with:\n\n✨ Finding startups by category or description\n💼 Investment guidance and recommendations\n📊 Startup analysis and insights\n🔍 Platform navigation\n💡 Startup and investment advice\n\nWhat would you like to explore today?`,
       type: "greeting",
     };
   }
 
-  // Startup search
+  // Startup search and general startup questions
   if (
-    /(find|search|look for|show me|discover).*(startup|company|business)/.test(
+    /(find|search|look for|show me|discover|tell me about|what are|list|get).*(startup|company|business|companies)/.test(
+      lowerQuery
+    ) ||
+    /(startup|startups|company|companies).*(what|how|tell|explain|about)/.test(
       lowerQuery
     )
   ) {
     return {
-      response:
-        "You can discover startups by:\n1. Visiting the 'Startups' page\n2. Using AI-powered semantic search\n3. Checking AI recommendations (for investors)\n4. Filtering by category\n\nWould you like me to explain any of these features?",
+      response: `🚀 **Discovering Startups:**
+
+You can find startups in several ways:
+
+**1. Browse All Startups:**
+• Visit the "Startups" page to see all approved startups
+• Filter by category (Fintech, Edtech, Healthtech, etc.)
+• Sort by upvotes, date, or stage
+
+**2. AI-Powered Semantic Search:**
+• Use natural language to describe what you're looking for
+• Example: "Show me startups working on AI for education"
+• The AI understands context and meaning, not just keywords
+
+**3. AI Recommendations (Investors):**
+• Get personalized startup suggestions
+• Based on your investment domains and interests
+• Includes compatibility scores
+
+**4. Category-Based Search:**
+• Ask me: "Show me fintech startups"
+• I'll find startups in that category
+
+**5. Specific Queries:**
+• "Find early stage startups"
+• "Show me trending startups"
+• "List AI/ML companies"
+
+Try asking me something like:
+• "Show me fintech startups"
+• "Find edtech companies"
+• "Recommend startups for me" (if you're an investor)
+
+What type of startups are you interested in?`,
       type: "information",
     };
   }
 
-  // Investment queries
-  if (/(invest|investment|funding|fund|money|capital)/.test(lowerQuery)) {
+  // Investment queries - comprehensive guidance
+  if (
+    /(invest|investment|funding|fund|money|capital|how to invest|investing|investment strategy|investment advice|investment tips|where to invest|what to invest|investment guide)/.test(
+      lowerQuery
+    )
+  ) {
+    let response = "";
+
+    if (
+      /(how to invest|investment strategy|investment advice|investment tips|investment guide)/.test(
+        lowerQuery
+      )
+    ) {
+      response = `💼 **Investment Guidance for Startups:**
+
+**1. Due Diligence Checklist:**
+• Review startup's business model and revenue streams
+• Check team background and experience
+• Analyze market size and competition
+• Evaluate product-market fit
+• Assess financial projections and burn rate
+
+**2. Key Metrics to Consider:**
+• Monthly Recurring Revenue (MRR) growth
+• Customer Acquisition Cost (CAC)
+• Lifetime Value (LTV)
+• Churn rate
+• Market traction and user engagement
+
+**3. Investment Stages:**
+• **Pre-seed/Seed**: Early stage, higher risk, potential for high returns
+• **Series A/B**: More established, lower risk, moderate returns
+• **Growth Stage**: Mature startups, lower risk, steady returns
+
+**4. Red Flags to Watch:**
+• Unrealistic valuations
+• Weak team or high turnover
+• No clear path to profitability
+• Over-reliance on a single customer
+• Legal or regulatory issues
+
+**5. Best Practices:**
+• Diversify your portfolio across sectors
+• Invest only what you can afford to lose
+• Do thorough research before committing
+• Consider the startup's alignment with your investment goals
+• Track your investments regularly
+
+Would you like me to find startups matching your investment criteria?`;
+    } else if (
+      /(where to invest|what to invest|find investment|investment opportunities)/.test(
+        lowerQuery
+      )
+    ) {
+      response = `🔍 **Finding Investment Opportunities:**
+
+I can help you discover startups by:
+• **Category**: Fintech, Edtech, Healthtech, AI/ML, etc.
+• **Stage**: Pre-seed, Seed, Series A, Growth
+• **AI Recommendations**: Personalized matches based on your profile
+• **Trending**: Most upvoted and popular startups
+
+Try asking me:
+• "Show me fintech startups"
+• "Find early stage AI companies"
+• "Recommend startups for me" (if you're an investor)
+
+What type of startups are you interested in?`;
+    } else {
+      response = `💼 **Investment Features:**
+
+As an investor on Campus Founders, you can:
+• **Browse Startups**: View all approved startups with detailed information
+• **AI Recommendations**: Get personalized startup suggestions based on your interests
+• **Compatibility Scores**: See how well startups match your investment profile
+• **Connect with Founders**: Message founders directly (Premium feature)
+• **Track Investments**: Monitor your investment commitments
+• **Investment Analysis**: View AI-powered investment potential scores
+
+**To get started:**
+1. Complete your investor profile with investment domains
+2. Browse the Startups page
+3. Use AI recommendations for personalized matches
+4. Review startup details and investment potential
+5. Connect with founders and make investment commitments
+
+${
+  user?.role === "investor" && user?.investorApprovalStatus === "approved"
+    ? "Since you're an approved investor, you can start investing right away! Try asking me to recommend startups for you."
+    : user?.role === "investor"
+    ? "Your investor profile is pending approval. Once approved, you'll have full access to investment features."
+    : "To access investment features, you'll need to sign up as an investor and get approved."
+}
+
+Would you like me to help you find specific types of startups or explain any investment feature in detail?`;
+    }
+
     return {
-      response:
-        "As an investor, you can:\n• Browse approved startups\n• Get AI-powered recommendations based on your interests\n• View compatibility scores\n• Connect with founders\n• Track investments\n\nMake sure your investor profile is complete for better recommendations!",
+      response,
       type: "information",
     };
   }
@@ -557,28 +694,373 @@ export function processChatbotQuery(query) {
     };
   }
 
-  // Help queries
-  if (/(help|how|what|explain|tell me|guide)/.test(lowerQuery)) {
+  // Help queries - more comprehensive
+  if (
+    /(help|how|what|explain|tell me|guide|how do|how can|what is|what are)/.test(
+      lowerQuery
+    )
+  ) {
+    // Specific help topics
+    if (/(how do i|how can i|how to)/.test(lowerQuery)) {
+      if (/(find|search|discover|get).*(startup)/.test(lowerQuery)) {
+        return {
+          response: `🔍 **How to Find Startups:**
+
+**Method 1: Browse Page**
+1. Go to the "Startups" page
+2. Use filters to narrow by category or stage
+3. Click on any startup to see details
+
+**Method 2: Ask Me**
+Just ask me directly! For example:
+• "Show me fintech startups"
+• "Find AI companies"
+• "List edtech startups"
+
+**Method 3: AI Search**
+1. Go to Startups page
+2. Click the sparkles icon to enable AI search
+3. Type natural language queries like "startups using blockchain for finance"
+
+**Method 4: AI Recommendations (Investors)**
+1. Complete your investor profile
+2. Ask me: "Recommend startups for me"
+3. Get personalized matches with compatibility scores
+
+Try asking me to find specific types of startups now!`,
+          type: "help",
+        };
+      } else if (
+        /(invest|make investment|commit investment)/.test(lowerQuery)
+      ) {
+        return {
+          response: `💼 **How to Invest:**
+
+**Step-by-Step Guide:**
+
+1. **Get Investor Access:**
+   • Sign up as an investor
+   • Complete your investor profile
+   • Get approved by admin
+
+2. **Find Startups:**
+   • Browse the Startups page
+   • Use AI recommendations
+   • Ask me to find specific types
+
+3. **Review Startup Details:**
+   • Check business model and metrics
+   • Review team and traction
+   • See investment potential score
+
+4. **Make Investment Commitment:**
+   • Click "Invest" button on startup page
+   • Enter investment amount
+   • Choose commitment status (Committed/Pending)
+   • Submit your commitment
+
+5. **Track Investments:**
+   • View your investment dashboard
+   • Monitor committed vs pending amounts
+   • Connect with founders
+
+**Tips:**
+• Do thorough research before investing
+• Start with smaller amounts
+• Diversify across sectors
+• Review startup metrics carefully
+
+Would you like me to help you find startups to invest in?`,
+          type: "help",
+        };
+      } else if (/(create|add|submit|register).*(startup)/.test(lowerQuery)) {
+        return {
+          response: `🚀 **How to Create/Submit a Startup:**
+
+1. **Create Your Startup:**
+   • Go to your Profile page
+   • Click "Create Startup" or "Edit Startup"
+   • Fill in all required information:
+     - Name, tagline, description
+     - Category, stage, university
+     - Logo, screenshots
+     - Team members, roadmap
+     - Company details
+
+2. **Complete Your Profile:**
+   • Add all team members
+   • Upload screenshots
+   • Add company registration details
+   • Set up roadmap milestones
+
+3. **Submit for Approval:**
+   • Click "Submit for Approval"
+   • Wait for admin review
+   • Your startup will appear once approved
+
+4. **After Approval:**
+   • Your startup is visible to all users
+   • Investors can discover and invest
+   • Get upvotes and reviews
+   • Track engagement metrics
+
+**Tips:**
+• Provide detailed descriptions
+• Add high-quality screenshots
+• Complete all sections
+• Keep information updated
+
+Need help with any specific step?`,
+          type: "help",
+        };
+      }
+    }
+
     return {
-      response:
-        "I can help you with:\n\n🔍 **Searching**: Use AI search to find startups by describing what you're looking for\n\n💡 **Recommendations**: Investors get personalized startup recommendations\n\n📊 **Analysis**: View sentiment analysis on reviews and investment potential scores\n\n🏷️ **Tags**: Startups get auto-generated tags for better discoverability\n\nAsk me anything about these features!",
+      response: `🤖 **How I Can Help You:**
+
+**🔍 Finding Startups:**
+• Ask me to find startups by category
+• Use AI-powered semantic search
+• Get personalized recommendations (investors)
+
+**💼 Investment Guidance:**
+• Learn about investment strategies
+• Understand startup metrics
+• Get investment tips and best practices
+
+**📊 Startup Information:**
+• Ask about specific startup categories
+• Learn about different stages
+• Understand startup ecosystem
+
+**💡 Platform Features:**
+• AI recommendations
+• Semantic search
+• Investment tracking
+• Founder connections
+
+**Examples of what you can ask:**
+• "Show me fintech startups"
+• "How do I invest in startups?"
+• "What should I look for when investing?"
+• "Tell me about edtech companies"
+• "Recommend startups for me"
+
+What would you like to know?`,
       type: "help",
     };
   }
 
   // Features queries
-  if (/(feature|what can|capabilities|abilities)/.test(lowerQuery)) {
+  if (
+    /(feature|what can|capabilities|abilities|what does|what are the)/.test(
+      lowerQuery
+    )
+  ) {
     return {
-      response:
-        "Our AI features include:\n\n✨ AI-Powered Recommendations\n🔍 Semantic Search\n📝 Text Summarization\n😊 Sentiment Analysis\n🏷️ Auto-Tagging\n📈 Investment Prediction\n💬 AI Chatbot (that's me!)\n\nWhich feature would you like to learn more about?",
+      response: `✨ **AI Features on Campus Founders:**
+
+**1. AI-Powered Recommendations** 🎯
+• Personalized startup suggestions for investors
+• Based on investment domains and interests
+• Includes compatibility scores
+
+**2. Semantic Search** 🔍
+• Natural language search
+• Understands context and meaning
+• Find startups by describing what you want
+
+**3. Text Summarization** 📝
+• Auto-generate startup summaries
+• Quick overview of long descriptions
+• Save time reading
+
+**4. Sentiment Analysis** 😊
+• Analyze review sentiments
+• Understand community feedback
+• Gauge startup reputation
+
+**5. Auto-Tagging** 🏷️
+• Automatic tag generation
+• Better categorization
+• Improved discoverability
+
+**6. Investment Prediction** 📈
+• AI-powered investment potential scores
+• Risk assessment
+• Growth predictions
+
+**7. AI Chatbot** 💬
+• That's me! I can help you:
+  - Find startups
+  - Investment guidance
+  - Platform navigation
+  - Answer questions
+
+Which feature would you like to learn more about?`,
       type: "information",
     };
   }
 
-  // Default response
+  // Startup category questions
+  if (
+    /(fintech|edtech|healthtech|ai|ml|blockchain|saas|ecommerce|agritech|iot|climatetech|proptech|foodtech|gaming).*(what|tell|explain|about|is)/.test(
+      lowerQuery
+    ) ||
+    /(what is|tell me about|explain).*(fintech|edtech|healthtech|ai|ml|blockchain|saas|ecommerce|agritech|iot|climatetech|proptech|foodtech|gaming)/.test(
+      lowerQuery
+    )
+  ) {
+    const categoryMap = {
+      fintech:
+        "Financial Technology - Startups using technology to improve financial services, payments, banking, insurance, and investment management.",
+      edtech:
+        "Educational Technology - Companies developing technology solutions for education, learning platforms, online courses, and educational tools.",
+      healthtech:
+        "Health Technology - Startups focused on healthcare innovation, telemedicine, health monitoring, medical devices, and wellness solutions.",
+      ai: "Artificial Intelligence - Companies leveraging AI and machine learning for various applications like automation, predictions, and intelligent systems.",
+      ml: "Machine Learning - Startups using ML algorithms for data analysis, pattern recognition, and predictive modeling.",
+      blockchain:
+        "Blockchain Technology - Companies building on blockchain for cryptocurrencies, smart contracts, decentralized applications, and Web3 solutions.",
+      saas: "Software as a Service - Cloud-based software solutions delivered as subscription services for businesses and consumers.",
+      "e-commerce":
+        "E-Commerce - Online retail platforms, marketplaces, and digital commerce solutions.",
+      agritech:
+        "Agricultural Technology - Startups using technology to improve farming, food production, and agricultural efficiency.",
+      iot: "Internet of Things - Companies developing connected devices and IoT solutions for smart homes, cities, and industries.",
+      climatetech:
+        "Climate Technology - Startups focused on environmental solutions, renewable energy, carbon reduction, and sustainability.",
+      proptech:
+        "Property Technology - Real estate technology solutions for property management, real estate transactions, and smart buildings.",
+      foodtech:
+        "Food Technology - Companies innovating in food production, delivery, alternative proteins, and food safety.",
+      gaming:
+        "Gaming Technology - Game development studios, gaming platforms, esports, and interactive entertainment solutions.",
+    };
+
+    let matchedCategory = "";
+    for (const [cat, desc] of Object.entries(categoryMap)) {
+      if (
+        lowerQuery.includes(cat) ||
+        lowerQuery.includes(cat.replace("-", ""))
+      ) {
+        matchedCategory = cat;
+        break;
+      }
+    }
+
+    if (matchedCategory) {
+      return {
+        response: `📚 **${
+          matchedCategory.charAt(0).toUpperCase() + matchedCategory.slice(1)
+        } Explained:**
+
+${categoryMap[matchedCategory]}
+
+**Want to see startups in this category?**
+Just ask me: "Show me ${matchedCategory} startups" and I'll find them for you!
+
+Would you like to explore ${matchedCategory} startups now?`,
+        type: "information",
+      };
+    }
+  }
+
+  // Startup stage questions
+  if (
+    /(pre-seed|seed|series a|series b|growth|early stage|late stage|stage).*(what|tell|explain|about|is)/.test(
+      lowerQuery
+    ) ||
+    /(what is|tell me about|explain).*(pre-seed|seed|series a|series b|growth|early stage|late stage)/.test(
+      lowerQuery
+    )
+  ) {
+    return {
+      response: `📊 **Startup Stages Explained:**
+
+**Pre-Seed Stage:**
+• Very early stage, often just an idea
+• Usually self-funded or friends & family
+• Building MVP or prototype
+• High risk, high potential
+
+**Seed Stage:**
+• Product launched, initial traction
+• First external funding round
+• Proving product-market fit
+• Building user base
+
+**Series A:**
+• Proven business model
+• Significant revenue or users
+• Scaling operations
+• Established market presence
+
+**Series B & Beyond:**
+• Strong revenue and growth
+• Expanding to new markets
+• Building competitive moat
+• Path to profitability
+
+**Growth Stage:**
+• Mature startup
+• Established market position
+• Consistent revenue
+• Lower risk, steady growth
+
+Would you like me to find startups at a specific stage?`,
+      type: "information",
+    };
+  }
+
+  // Thank you / appreciation
+  if (
+    /(thank|thanks|appreciate|grateful|awesome|great|good|nice|helpful)/.test(
+      lowerQuery
+    )
+  ) {
+    return {
+      response: `You're welcome, ${userName}! 😊 I'm always here to help you discover amazing startups and make informed investment decisions. Feel free to ask me anything anytime!
+
+Is there anything else you'd like to know?`,
+      type: "greeting",
+    };
+  }
+
+  // Goodbye
+  if (/(bye|goodbye|see you|later|farewell|exit|quit)/.test(lowerQuery)) {
+    return {
+      response: `Goodbye ${userName}! 👋 It was great helping you today. Come back anytime if you need assistance finding startups or investment guidance. Have a great day!`,
+      type: "greeting",
+    };
+  }
+
+  // Default response - more helpful
   return {
-    response:
-      "I'm here to help! You can ask me about:\n• Finding startups\n• Investment opportunities\n• Platform features\n• AI capabilities\n\nTry asking: 'How do I find startups?' or 'What AI features are available?'",
+    response: `I'm here to help you, ${userName}! 🤖 I can assist with:
+
+**🔍 Finding Startups:**
+• "Show me fintech startups"
+• "Find AI companies"
+• "Recommend startups for me"
+
+**💼 Investment Guidance:**
+• "How do I invest?"
+• "Investment tips"
+• "What to look for when investing"
+
+**📚 Learning:**
+• "What is fintech?"
+• "Explain startup stages"
+• "Tell me about edtech"
+
+**💡 Platform Help:**
+• "How do I find startups?"
+• "What features are available?"
+• "Help me navigate"
+
+Try asking me something specific, or use one of the suggestions above!`,
     type: "default",
   };
 }

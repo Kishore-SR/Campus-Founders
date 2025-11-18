@@ -463,6 +463,11 @@ export async function chatbotQuery(req, res) {
   try {
     const { query } = req.body;
     const userId = req.user?._id || null;
+    const user = userId
+      ? await User.findById(userId).select(
+          "username fullName role investorApprovalStatus"
+        )
+      : null;
 
     if (!query || query.trim().length === 0) {
       return res.status(400).json({ message: "Query is required" });
@@ -530,7 +535,7 @@ export async function chatbotQuery(req, res) {
       // Get startups
       const queryObj = { status: "approved" };
       if (category) {
-        queryObj.category = category;
+        queryObj.category = category.toLowerCase();
       }
 
       let startups = await Startup.find(queryObj)
@@ -562,38 +567,50 @@ export async function chatbotQuery(req, res) {
         }
       }
 
-      // Handle 0 results with engaging message
+      // Handle 0 results - try semantic search as fallback
       if (startups.length === 0) {
-        // Get alternative categories (exclude the searched category)
-        const allCategories = [
-          "fintech",
-          "healthtech",
-          "edtech",
-          "ai/ml",
-          "blockchain",
-          "saas",
-          "e-commerce",
-          "agritech",
-          "iot",
-          "climatetech",
-          "proptech",
-          "foodtech",
-          "gaming",
-        ];
+        // Try semantic search as fallback
+        const allStartups = await Startup.find({ status: "approved" })
+          .populate("owner", "username profilePic fullName location")
+          .lean();
 
-        const alternativeCategories = allCategories
-          .filter((cat) => cat !== category)
-          .slice(0, 3)
-          .join(", ");
+        const semanticResults = findSimilarStartups(query, allStartups, 10);
 
-        return res.status(200).json({
-          response: category
-            ? `😔 Sorry, I couldn't find any ${category} startups at the moment. Try searching for other categories like ${alternativeCategories}!`
-            : `😔 Sorry, I couldn't find any startups matching your query. Try searching for specific categories like ${alternativeCategories}!`,
-          type: "text",
-          data: null,
-          timestamp: new Date(),
-        });
+        if (semanticResults.length > 0) {
+          // Use semantic search results
+          startups = semanticResults;
+        } else {
+          // Get alternative categories (exclude the searched category)
+          const allCategories = [
+            "fintech",
+            "healthtech",
+            "edtech",
+            "ai/ml",
+            "blockchain",
+            "saas",
+            "e-commerce",
+            "agritech",
+            "iot",
+            "climatetech",
+            "proptech",
+            "foodtech",
+            "gaming",
+          ];
+
+          const alternativeCategories = allCategories
+            .filter((cat) => cat !== category)
+            .slice(0, 3)
+            .join(", ");
+
+          return res.status(200).json({
+            response: category
+              ? `😔 Sorry, I couldn't find any ${category} startups at the moment. Try searching for other categories like ${alternativeCategories}!`
+              : `😔 Sorry, I couldn't find any startups matching your query. Try searching for specific categories like ${alternativeCategories}!`,
+            type: "text",
+            data: null,
+            timestamp: new Date(),
+          });
+        }
       }
 
       return res.status(200).json({
@@ -656,8 +673,8 @@ export async function chatbotQuery(req, res) {
       });
     }
 
-    // Default chatbot response
-    const response = processChatbotQuery(query);
+    // Default chatbot response - pass user info for personalized responses
+    const response = processChatbotQuery(query, user);
 
     res.status(200).json({
       response: response.response,

@@ -5,23 +5,45 @@ import { chatbotQuery } from "../lib/startup-api";
 import toast from "react-hot-toast";
 import useAuthUser from "../hooks/useAuthUser";
 
+// Simple markdown parser for bold text (**text**)
+const parseMarkdown = (text) => {
+  if (!text) return "";
+
+  // Match **text** patterns (non-greedy to handle multiple instances)
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return parts.map((part, index) => {
+    // Check if this part is a bold marker
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      // Remove ** and make bold
+      const boldText = part.slice(2, -2);
+      return <strong key={index} className="font-bold">{boldText}</strong>;
+    }
+    // Return regular text, preserving newlines
+    return <span key={index}>{part}</span>;
+  });
+};
+
 const AIChatbot = () => {
   const { authUser } = useAuthUser();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      type: "bot",
-      text: "Hello! I'm your AI assistant. I can help you find startups, discover investors, and get recommendations. Try asking me:",
-      timestamp: new Date(),
-      suggestions: [
-        "Show me fintech startups",
-        "Find edtech companies",
-        "List all investors",
-        "Recommend startups for me",
-      ],
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const userName = authUser?.fullName || authUser?.username || "there";
+    return [
+      {
+        type: "bot",
+        text: `Hello ${userName}! 👋 I'm your AI assistant for Campus Founders. I can help you with:\n\n✨ Finding startups by category or description\n💼 Investment guidance and recommendations\n📊 Startup analysis and insights\n🔍 Platform navigation\n💡 Startup and investment advice\n\nTry asking me:`,
+        timestamp: new Date(),
+        suggestions: [
+          "Show me fintech startups",
+          "How do I invest in startups?",
+          "What is fintech?",
+          "Recommend startups for me",
+        ],
+      },
+    ];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -62,13 +84,40 @@ const AIChatbot = () => {
 
     try {
       const response = await chatbotQuery(queryText);
+
+      // Predefined suggestions based on response type
+      let suggestions = [];
+      if (response.type === "startups") {
+        suggestions = [
+          "Show me more startups",
+          "Find edtech startups",
+          "What is fintech?",
+          "Recommend startups for me",
+        ];
+      } else if (response.type === "investors") {
+        suggestions = [
+          "List more investors",
+          "Show fintech investors",
+          "How do I connect with investors?",
+          "Tell me about investment process",
+        ];
+      } else {
+        // General suggestions after text response
+        suggestions = [
+          "Show me fintech startups",
+          "Find edtech startups",
+          "List investors",
+          "How do I invest?",
+        ];
+      }
+
       const botMessage = {
         type: "bot",
         text: response.response,
         timestamp: new Date(),
         dataType: response.type, // 'startups', 'investors', or regular text
         data: response.data || null, // Array of startups or investors
-        suggestions: null, // No suggestions for responses
+        suggestions: suggestions, // Show predefined suggestions after response
       };
       setMessages((prev) => [...prev, botMessage]);
     } catch {
@@ -77,6 +126,12 @@ const AIChatbot = () => {
         type: "bot",
         text: "I'm sorry, I encountered an error. Please try again.",
         timestamp: new Date(),
+        suggestions: [
+          "Show me fintech startups",
+          "Find edtech startups",
+          "List investors",
+          "How do I invest?",
+        ],
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -141,7 +196,9 @@ const AIChatbot = () => {
                 : "bg-base-200 text-base-content"
                 }`}
             >
-              <p className="text-sm whitespace-pre-line mb-2">{msg.text}</p>
+              <div className="text-sm whitespace-pre-line mb-2">
+                {parseMarkdown(msg.text)}
+              </div>
 
               {/* Suggestion Buttons */}
               {msg.suggestions && msg.suggestions.length > 0 && (

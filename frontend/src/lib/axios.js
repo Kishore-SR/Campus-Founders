@@ -40,16 +40,39 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle 401 errors - clear token and redirect to login
+    // Handle 401 errors - only clear token on actual authentication failures
+    // Don't clear token for validation errors or other non-auth 401s
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      // Only redirect if not already on login/signup page
-      if (
-        !window.location.pathname.includes("/login") &&
-        !window.location.pathname.includes("/signup")
-      ) {
-        // Don't redirect automatically - let the app handle it
-        console.log("Unauthorized - token cleared");
+      const errorMessage = error.response?.data?.message || "";
+      const errorType = error.response?.data?.error || "";
+
+      // Only clear token for actual authentication errors, not validation errors
+      const isAuthError =
+        errorMessage.includes("Unauthorized") ||
+        errorMessage.includes("token") ||
+        errorMessage.includes("authentication") ||
+        errorMessage.includes("logged in") ||
+        errorType === "TOKEN_EXPIRED" ||
+        errorType === "INVALID_TOKEN" ||
+        errorMessage.includes("User not found");
+
+      // Don't clear token for validation or other errors
+      const isValidationError =
+        errorMessage.includes("Invalid") ||
+        errorMessage.includes("must be") ||
+        errorMessage.includes("format") ||
+        errorMessage.includes("required");
+
+      if (isAuthError && !isValidationError) {
+        localStorage.removeItem("token");
+        // Only redirect if not already on login/signup page
+        if (
+          !window.location.pathname.includes("/login") &&
+          !window.location.pathname.includes("/signup")
+        ) {
+          // Don't redirect automatically - let the app handle it
+          console.log("Unauthorized - token cleared");
+        }
       }
     }
     return Promise.reject(error);

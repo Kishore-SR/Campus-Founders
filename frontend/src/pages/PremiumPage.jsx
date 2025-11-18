@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Crown, Check, Sparkles, Video, MessageSquare, Headphones, TrendingUp } from "lucide-react";
+import { Crown, Check, Sparkles, Video, MessageSquare, Headphones, TrendingUp, BookOpen } from "lucide-react";
 import PremiumModal from "../components/PremiumModal";
 import useAuthUser from "../hooks/useAuthUser";
 
@@ -21,6 +21,7 @@ const PremiumPage = () => {
     { icon: Sparkles, text: "Extended AI chat support" },
     { icon: Headphones, text: "24/7 tech support" },
     { icon: TrendingUp, text: "Startup matching score" },
+    { icon: BookOpen, text: "Get access to high quality courses" },
   ];
 
   return (
