@@ -85,7 +85,7 @@ const VerifyOTPPage = () => {
         <title>Verify Account</title>
         <meta
           name="description"
-          content="Verify your account to join the Covalent engineering community."
+          content="Verify your account to join the Campus Founders community."
         />
       </Helmet>{" "}
       <div

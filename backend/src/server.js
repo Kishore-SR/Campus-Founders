@@ -21,6 +21,8 @@ app.use(
     origin: function (origin, callback) {
       const allowedOrigins = [
         "https://campus-founders.vercel.app",
+        "https://campus-founder-pearl.vercel.app",
+        "https://campusfounders.vercel.app",
         "https://campus-founders-backend.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
@@ -63,7 +65,7 @@ app.get("/", (req, res) => {
   const hasJwtSecret = !!process.env.JWT_SECRET_KEY;
 
   res.status(200).json({
-    message: "Covalent API is running successfully!",
+    message: "Campus Founders API is running successfully!",
     documentation: "API endpoints start with /api/...",
     status: "online",
     timestamp: new Date().toISOString(),
@@ -166,7 +168,7 @@ app.use("*", (req, res) => {
 // Start server with database connection
 const startServer = async () => {
   try {
-    console.log("🚀 Starting Covalent server...");
+    console.log("🚀 Starting Campus Founders server...");
 
     // Connect to database first
     console.log("📊 Connecting to database...");

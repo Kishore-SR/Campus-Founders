@@ -84,10 +84,10 @@ const CallPage = () => {
   return (
     <div className="h-screen w-full overflow-hidden">
       <Helmet>
-        <title>Video Call | Covalent</title>
+        <title>Video Call | Campus Founders</title>
         <meta
           name="description"
-          content="Connect face-to-face with your engineering peers on Covalent."
+          content="Connect face-to-face with founders and investors on Campus Founders."
         />
       </Helmet>
       {isLoading || !call ? (

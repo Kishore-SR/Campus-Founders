@@ -6,6 +6,11 @@ const API_URL =
     ? "https://campus-founders-backend.vercel.app/api"
     : import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
 
+// Log API URL for debugging (only in development)
+if (import.meta.env.MODE !== "production") {
+  console.log("🌐 API Base URL:", API_URL);
+}
+
 console.log("Using API URL:", API_URL); // Debug log
 
 export const axiosInstance = axios.create({

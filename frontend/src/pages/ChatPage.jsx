@@ -101,7 +101,7 @@ const ChatPage = () => {
         <title>Chat</title>
         <meta
           name="description"
-          content="Chat with your engineering connections on Covalent."
+          content="Chat with founders and investors on Campus Founders."
         />
       </Helmet>
       <Chat client={chatClient}>

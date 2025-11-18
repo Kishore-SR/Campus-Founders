@@ -36,7 +36,7 @@ const NotificationsPage = () => {
         <title>Notifications</title>
         <meta
           name="description"
-          content="Stay updated with your Covalent connections and activities."
+          content="Stay updated with your Campus Founders connections and activities."
         />
       </Helmet>
       <div className="max-w-4xl mx-auto">

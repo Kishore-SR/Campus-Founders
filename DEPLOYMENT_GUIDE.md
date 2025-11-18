@@ -137,15 +137,23 @@ You should see:
    - **Output Directory:** `dist` (auto-detected)
    - **Install Command:** `npm install`
 
-### 4.2 Set Environment Variables (Optional)
+### 4.2 Set Environment Variables
 
-If you want to override the production API URL:
+**REQUIRED:**
+
+```
+VITE_STREAM_API_KEY=your-stream-api-key
+```
+
+This is needed for chat and video call functionality.
+
+**OPTIONAL:**
 
 ```
 VITE_API_BASE_URL=https://campus-founders-backend.vercel.app/api
 ```
 
-**Note:** The frontend is already configured to use `https://campus-founders-backend.vercel.app/api` in production mode, so this is optional.
+**Note:** The frontend is already configured to use `https://campus-founders-backend.vercel.app/api` in production mode, so `VITE_API_BASE_URL` is optional. You only need to add it if your backend URL is different.
 
 ### 4.3 Deploy Frontend
 

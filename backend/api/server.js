@@ -22,6 +22,8 @@ app.use(
     origin: function (origin, callback) {
       const allowedOrigins = [
         "https://campus-founders.vercel.app",
+        "https://campus-founder-pearl.vercel.app",
+        "https://campusfounders.vercel.app",
         "https://campus-founders-backend.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
@@ -87,7 +89,7 @@ app.get("/", (req, res) => {
   }
 
   res.status(200).json({
-    message: "Covalent API is running successfully!",
+    message: "Campus Founders API is running successfully!",
     documentation: "API endpoints start with /api/...",
     status: "online",
     timestamp: new Date().toISOString(),
@@ -125,7 +127,7 @@ app.get("/api/health", (req, res) => {
 
   res.status(200).json({
     status: "ok",
-    message: "Covalent API is running",
+    message: "Campus Founders API is running",
     time: new Date().toISOString(),
     env: {
       JWT_SECRET_KEY: process.env.JWT_SECRET_KEY ? "EXISTS" : "MISSING",

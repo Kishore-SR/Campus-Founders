@@ -109,6 +109,23 @@ export async function login(req, res) {
       });
     }
 
+    // Check database connection (for serverless environments)
+    const mongoose = (await import("mongoose")).default;
+    if (mongoose.connection.readyState !== 1) {
+      console.log("Database not connected. Attempting to connect...");
+      const { connectDB } = await import("../lib/db.js");
+      try {
+        await connectDB();
+        console.log("Database connected successfully");
+      } catch (dbError) {
+        console.error("Failed to connect to database:", dbError);
+        return res.status(500).json({
+          message: "Database connection error",
+          error: "DB_CONNECTION_FAILED",
+        });
+      }
+    }
+
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -144,8 +161,15 @@ export async function login(req, res) {
       token,
     });
   } catch (error) {
-    console.log("Error in login controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error in login controller:", error);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message || "Unknown error",
+      type: error.name || "Error",
+    });
   }
 }
 

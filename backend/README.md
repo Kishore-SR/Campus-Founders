@@ -1,6 +1,6 @@
-# Covalent Backend API
+# Campus Founders Backend API
 
-This is the backend API for the Covalent social app, built to run on Vercel serverless functions.
+This is the backend API for the Campus Founders platform, built to run on Vercel serverless functions.
 
 ## Environment Variables
 

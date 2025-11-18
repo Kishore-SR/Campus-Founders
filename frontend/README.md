@@ -1,12 +1,82 @@
-# React + Vite
+# Campus Founders Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend application for Campus Founders - A platform connecting student founders with investors in the campus ecosystem.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - UI library
+- **Vite** - Build tool and dev server
+- **React Router** - Client-side routing
+- **TailwindCSS + DaisyUI** - Styling with 30+ themes
+- **React Query** - Server state management
+- **Axios** - HTTP client
+- **Stream.io** - Real-time chat and video calls
+- **EmailJS** - Email OTP verification
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js 18+ and npm
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Create .env file
+# VITE_API_BASE_URL=http://localhost:5001/api
+# VITE_STREAM_API_KEY=your-stream-api-key
+
+# Start development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Environment Variables
+
+### Required
+
+- `VITE_STREAM_API_KEY` - Stream.io API key for chat/video functionality
+
+### Optional
+
+- `VITE_API_BASE_URL` - Backend API URL (defaults to `http://localhost:5001/api` in development, uses production URL in production mode)
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/     # Reusable UI components
+│   ├── pages/         # Page components
+│   ├── hooks/         # Custom React hooks
+│   ├── lib/           # API clients and utilities
+│   ├── constants/     # App constants
+│   ├── store/         # State management (Zustand)
+│   └── styles/        # CSS files
+├── public/            # Static assets
+└── package.json
+```
+
+## Features
+
+- 🎨 30+ themes with DaisyUI
+- 💬 Real-time chat with Stream.io
+- 📹 Video calls
+- 🔐 JWT authentication
+- 📱 Responsive design
+- 🚀 Optimized production builds
+
+## Deployment
+
+The frontend is configured for deployment on Vercel. See [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md) for detailed instructions.
