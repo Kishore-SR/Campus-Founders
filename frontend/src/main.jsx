@@ -7,8 +7,17 @@ import App from "./App.jsx";
 import { BrowserRouter } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Create QueryClient instance
-const queryClient = new QueryClient();
+// Create QueryClient instance with optimized defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Disable refetch on window focus for better performance
+      retry: 1, // Retry failed requests once
+      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+      gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (formerly cacheTime)
+    },
+  },
+});
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

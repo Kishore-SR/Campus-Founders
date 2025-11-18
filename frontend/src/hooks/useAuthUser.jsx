@@ -21,12 +21,16 @@ const useAuthUser = () => {
         if (error.response?.status === 401) {
           localStorage.removeItem("token");
         }
-        throw error;
+        // Return null user instead of throwing to prevent error state
+        return { user: null };
       }
     },
     retry: false, // auth check only once
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Disable refetch on focus to prevent slowness
     refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   return {

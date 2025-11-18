@@ -39,5 +39,19 @@ axiosInstance.interceptors.response.use(
     }
     return response;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    // Handle 401 errors - clear token and redirect to login
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      // Only redirect if not already on login/signup page
+      if (
+        !window.location.pathname.includes("/login") &&
+        !window.location.pathname.includes("/signup")
+      ) {
+        // Don't redirect automatically - let the app handle it
+        console.log("Unauthorized - token cleared");
+      }
+    }
+    return Promise.reject(error);
+  }
 );
