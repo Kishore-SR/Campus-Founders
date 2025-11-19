@@ -106,9 +106,10 @@ export function findSimilarStartups(queryText, startups, limit = 10) {
   });
 
   // Sort by similarity (highest first) and return top results
+  // Lower threshold to 0.05 to include more results, especially for short queries
   return scored
     .sort((a, b) => b.similarity - a.similarity)
-    .filter((item) => item.similarity > 0.1) // Filter out very low similarity
+    .filter((item) => item.similarity > 0.05) // Lower threshold for better recall
     .slice(0, limit)
     .map((item) => item.startup);
 }
@@ -119,6 +120,11 @@ export function findSimilarStartups(queryText, startups, limit = 10) {
 export function recommendStartupsForInvestor(investor, startups, limit = 10) {
   if (!investor || !startups || startups.length === 0) return [];
 
+  // Normalize investment domains to lowercase for matching
+  const normalizedDomains = (investor.investmentDomains || []).map((domain) =>
+    domain.toLowerCase().replace(/\s+/g, "").replace(/[\/&]/g, "")
+  );
+
   // Build investor profile from their interests
   const investorProfile = [
     investor.bio || "",
@@ -126,6 +132,91 @@ export function recommendStartupsForInvestor(investor, startups, limit = 10) {
     investor.currentFocus || "",
   ].join(" ");
 
+  // If investor has investment domains, prioritize category matching
+  if (normalizedDomains.length > 0) {
+    // First, get startups that match categories directly
+    const categoryMatches = startups.filter((startup) => {
+      if (!startup.category) return false;
+      const normalizedCategory = startup.category
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/[\/&]/g, "");
+      return normalizedDomains.some(
+        (domain) =>
+          normalizedCategory.includes(domain) ||
+          domain.includes(normalizedCategory) ||
+          // Handle variations like "edtech" vs "ed tech" vs "education technology"
+          (domain.includes("ed") && normalizedCategory.includes("ed")) ||
+          (domain.includes("fin") && normalizedCategory.includes("fin")) ||
+          (domain.includes("health") &&
+            normalizedCategory.includes("health")) ||
+          (domain.includes("ai") &&
+            (normalizedCategory.includes("ai") ||
+              normalizedCategory.includes("ml")))
+      );
+    });
+
+    // If we have enough category matches, use them and boost with similarity
+    if (categoryMatches.length > 0) {
+      // Score each category match
+      const scored = categoryMatches.map((startup) => {
+        const startupText = `${startup.name} ${startup.tagline} ${startup.description} ${startup.category}`;
+        const similarity = investorProfile.trim()
+          ? calculateTextSimilarity(investorProfile, startupText)
+          : 0.5; // Default similarity if no profile text
+
+        // Boost score for exact category match
+        const normalizedCategory = startup.category
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .replace(/[\/&]/g, "");
+        const categoryBoost = normalizedDomains.some(
+          (domain) =>
+            normalizedCategory === domain ||
+            normalizedCategory.includes(domain) ||
+            domain.includes(normalizedCategory)
+        )
+          ? 0.3
+          : 0;
+
+        return {
+          startup,
+          score: similarity + categoryBoost,
+        };
+      });
+
+      // Sort by score and take top results
+      const topMatches = scored
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+        .map((item) => item.startup);
+
+      // If we have enough matches, return them
+      if (topMatches.length >= Math.min(limit, categoryMatches.length)) {
+        return topMatches;
+      }
+
+      // Otherwise, fill remaining slots with similarity-based recommendations
+      const remaining = limit - topMatches.length;
+      const otherStartups = startups.filter(
+        (s) =>
+          !topMatches.some((tm) => tm._id?.toString() === s._id?.toString())
+      );
+
+      if (otherStartups.length > 0 && investorProfile.trim()) {
+        const similar = findSimilarStartups(
+          investorProfile,
+          otherStartups,
+          remaining
+        );
+        return [...topMatches, ...similar];
+      }
+
+      return topMatches;
+    }
+  }
+
+  // Fallback: If no profile or no category matches, use similarity or popularity
   if (!investorProfile.trim()) {
     // If no profile, return popular startups
     return startups
@@ -133,6 +224,7 @@ export function recommendStartupsForInvestor(investor, startups, limit = 10) {
       .slice(0, limit);
   }
 
+  // Use similarity-based search with lower threshold
   return findSimilarStartups(investorProfile, startups, limit);
 }
 
@@ -182,15 +274,41 @@ export function summarizeText(text, maxSentences = 2) {
 export function calculateCompatibilityScore(investor, startup) {
   let score = 50; // Base score
 
-  // Category match
+  // Category match - improved matching for variations
   if (
     investor.investmentDomains &&
     investor.investmentDomains.length > 0 &&
-    investor.investmentDomains.some(
-      (domain) => domain.toLowerCase() === startup.category?.toLowerCase()
-    )
+    startup.category
   ) {
-    score += 30;
+    const normalizedCategory = startup.category
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/[\/&]/g, "");
+    const domainMatch = investor.investmentDomains.some((domain) => {
+      const normalizedDomain = domain
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/[\/&]/g, "");
+      return (
+        normalizedDomain === normalizedCategory ||
+        normalizedCategory.includes(normalizedDomain) ||
+        normalizedDomain.includes(normalizedCategory) ||
+        // Handle common variations
+        (normalizedDomain.includes("ed") &&
+          normalizedCategory.includes("ed")) ||
+        (normalizedDomain.includes("fin") &&
+          normalizedCategory.includes("fin")) ||
+        (normalizedDomain.includes("health") &&
+          normalizedCategory.includes("health")) ||
+        (normalizedDomain.includes("ai") &&
+          (normalizedCategory.includes("ai") ||
+            normalizedCategory.includes("ml")))
+      );
+    });
+
+    if (domainMatch) {
+      score += 30;
+    }
   }
 
   // Text similarity
