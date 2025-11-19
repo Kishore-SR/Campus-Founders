@@ -311,6 +311,22 @@ const StartupsPage = () => {
                         <div className="flex flex-wrap gap-2 items-center">
                           <div className="badge badge-primary">{startup.category}</div>
                           <div className="badge badge-outline">{startup.stage}</div>
+                          {/* Compatibility Score for Investors */}
+                          {authUser?.role === "investor" &&
+                            authUser.investorApprovalStatus === "approved" &&
+                            startup.compatibilityScore !== undefined && (
+                              <div
+                                className={`badge ${startup.compatibilityScore >= 70
+                                    ? "badge-success"
+                                    : startup.compatibilityScore >= 50
+                                      ? "badge-warning"
+                                      : "badge-error"
+                                  }`}
+                                title="Compatibility Score: How well this startup matches your investment interests"
+                              >
+                                {startup.compatibilityScore}% Match
+                              </div>
+                            )}
                           {startup.owner && (
                             <div className="flex items-center gap-2 text-sm opacity-70">
                               <span>by</span>

@@ -77,6 +77,14 @@ const ChatPage = () => {
   }, [tokenData, authUser, targetUserId]);
 
   const handleVideoCall = () => {
+    // TODO: Revert to actual implementation when video call limits are resolved
+    // Demo video call link - open in new tab with actual username
+    const userId = authUser?.username || authUser?.fullName?.replace(/\s+/g, "_") || authUser?._id || "User";
+    const demoCallUrl = `https://getstream.io/video/demos/join/JRcWJUMVmWdqGYdRqIr5g?user_id=${encodeURIComponent(userId)}`;
+    window.open(demoCallUrl, "_blank");
+    toast.success("Opening demo video call...");
+
+    /* COMMENTED OUT - Actual implementation (to revert later)
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
 
@@ -86,6 +94,7 @@ const ChatPage = () => {
 
       toast.success("Video call link sent successfully!");
     }
+    */
   };
 
   if (loading || !chatClient || !channel) return <ChatLoader />;

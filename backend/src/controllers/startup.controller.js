@@ -138,6 +138,7 @@ export async function getMyStartup(req, res) {
 export async function getApprovedStartups(req, res) {
   try {
     const { category, search } = req.query;
+    const user = req.user; // Get authenticated user if available
 
     const query = { status: "approved" };
     if (category) {
@@ -153,7 +154,30 @@ export async function getApprovedStartups(req, res) {
 
     const startups = await Startup.find(query)
       .populate("owner", "username profilePic fullName location")
-      .sort({ upvoteCount: -1, createdAt: -1 });
+      .sort({ upvoteCount: -1, createdAt: -1 })
+      .lean();
+
+    // If user is an investor, add compatibility scores with randomization
+    if (
+      user &&
+      user.role === "investor" &&
+      user.investorApprovalStatus === "approved"
+    ) {
+      const startupsWithScores = startups.map((startup) => {
+        const baseScore = calculateCompatibilityScore(user, startup);
+        // Add randomization: +0 to +5 variation for better UI (80-85% range if base is around 80)
+        const variation = Math.floor(Math.random() * 6); // 0 to +5
+        const compatibilityScore = Math.min(
+          100,
+          Math.max(0, baseScore + variation)
+        );
+        return {
+          ...startup,
+          compatibilityScore,
+        };
+      });
+      return res.status(200).json(startupsWithScores);
+    }
 
     res.status(200).json(startups);
   } catch (error) {
@@ -185,6 +209,19 @@ export async function getStartupById(req, res) {
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
         : 0;
 
+    // Calculate compatibility score for investors with randomization
+    let compatibilityScore = undefined;
+    if (
+      req.user &&
+      req.user.role === "investor" &&
+      req.user.investorApprovalStatus === "approved"
+    ) {
+      const baseScore = calculateCompatibilityScore(req.user, startup);
+      // Add randomization: +0 to +5 variation for better UI (80-85% range if base is around 80)
+      const variation = Math.floor(Math.random() * 6); // 0 to +5
+      compatibilityScore = Math.min(100, Math.max(0, baseScore + variation));
+    }
+
     res.status(200).json({
       startup,
       reviews,
@@ -192,6 +229,7 @@ export async function getStartupById(req, res) {
         avgRating: avgRating.toFixed(1),
         totalReviews: reviews.length,
       },
+      compatibilityScore,
     });
   } catch (error) {
     console.error("Error in getStartupById:", error);
@@ -264,8 +302,8 @@ export async function addReview(req, res) {
     // Check if user already reviewed
     const existingReview = await Review.findOne({ startup: id, user: userId });
     if (existingReview) {
-      // Analyze sentiment using AI
-      const sentiment = analyzeSentiment(comment);
+      // Analyze sentiment using AI (pass rating to improve accuracy)
+      const sentiment = analyzeSentiment(comment, rating);
 
       // Update existing review
       existingReview.rating = rating;
@@ -288,8 +326,8 @@ export async function addReview(req, res) {
       });
     }
 
-    // Analyze sentiment using AI
-    const sentiment = analyzeSentiment(comment);
+    // Analyze sentiment using AI (pass rating to improve accuracy)
+    const sentiment = analyzeSentiment(comment, rating);
 
     // Create new review
     const review = await Review.create({
@@ -361,11 +399,20 @@ export async function getAIRecommendations(req, res) {
     // Get AI recommendations
     const recommendations = recommendStartupsForInvestor(user, startups, 10);
 
-    // Add compatibility scores
-    const recommendationsWithScores = recommendations.map((startup) => ({
-      ...startup,
-      compatibilityScore: calculateCompatibilityScore(user, startup),
-    }));
+    // Add compatibility scores with randomization
+    const recommendationsWithScores = recommendations.map((startup) => {
+      const baseScore = calculateCompatibilityScore(user, startup);
+      // Add randomization: ±2-5% variation for better UI (80-85% range if base is around 80)
+      const variation = Math.floor(Math.random() * 6) - 2; // -2 to +3
+      const compatibilityScore = Math.min(
+        100,
+        Math.max(0, baseScore + variation)
+      );
+      return {
+        ...startup,
+        compatibilityScore,
+      };
+    });
 
     res.status(200).json({
       recommendations: recommendationsWithScores,
@@ -381,6 +428,7 @@ export async function getAIRecommendations(req, res) {
 export async function semanticSearchStartups(req, res) {
   try {
     const { query } = req.query;
+    const user = req.user; // Get authenticated user if available
 
     if (!query || query.trim().length === 0) {
       return res.status(400).json({ message: "Search query is required" });
@@ -393,6 +441,33 @@ export async function semanticSearchStartups(req, res) {
 
     // Use AI to find similar startups
     const results = findSimilarStartups(query, startups, 20);
+
+    // If user is an investor, add compatibility scores with randomization
+    if (
+      user &&
+      user.role === "investor" &&
+      user.investorApprovalStatus === "approved"
+    ) {
+      const resultsWithScores = results.map((startup) => {
+        const baseScore = calculateCompatibilityScore(user, startup);
+        // Add randomization: +0 to +5 variation for better UI (80-85% range if base is around 80)
+        const variation = Math.floor(Math.random() * 6); // 0 to +5
+        const compatibilityScore = Math.min(
+          100,
+          Math.max(0, baseScore + variation)
+        );
+        return {
+          ...startup,
+          compatibilityScore,
+        };
+      });
+      return res.status(200).json({
+        results: resultsWithScores,
+        query,
+        count: resultsWithScores.length,
+        message: "AI-powered semantic search completed",
+      });
+    }
 
     res.status(200).json({
       results,
@@ -558,9 +633,16 @@ export async function chatbotQuery(req, res) {
               const original = startups.find(
                 (st) => st._id.toString() === s._id.toString()
               );
+              const baseScore = calculateCompatibilityScore(user, s);
+              // Add randomization: ±2-5% variation for better UI (80-85% range if base is around 80)
+              const variation = Math.floor(Math.random() * 6) - 2; // -2 to +3
+              const compatibilityScore = Math.min(
+                100,
+                Math.max(0, baseScore + variation)
+              );
               return {
                 ...original,
-                compatibilityScore: calculateCompatibilityScore(user, s),
+                compatibilityScore,
               };
             });
           }

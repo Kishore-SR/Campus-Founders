@@ -331,9 +331,19 @@ export function calculateCompatibilityScore(investor, startup) {
 /**
  * Sentiment Analysis - Analyze text for positive/negative sentiment
  * Returns: { sentiment: 'positive'|'negative'|'neutral', score: -1 to 1 }
+ * @param {string} text - The text to analyze
+ * @param {number} rating - Optional rating (1-5) to influence sentiment
  */
-export function analyzeSentiment(text) {
-  if (!text) return { sentiment: "neutral", score: 0 };
+export function analyzeSentiment(text, rating = null) {
+  if (!text) {
+    // If no text but has rating, use rating to determine sentiment
+    if (rating !== null) {
+      if (rating >= 4) return { sentiment: "positive", score: 0.8 };
+      if (rating <= 2) return { sentiment: "negative", score: -0.8 };
+      return { sentiment: "neutral", score: 0 };
+    }
+    return { sentiment: "neutral", score: 0 };
+  }
 
   const words = preprocessText(text);
 
@@ -370,6 +380,12 @@ export function analyzeSentiment(text) {
     "impressed",
     "excited",
     "optimistic",
+    "thank",
+    "thanks",
+    "thankful",
+    "appreciate",
+    "passed",
+    "help",
   ];
 
   const negativeWords = [
@@ -402,6 +418,8 @@ export function analyzeSentiment(text) {
     "broken",
     "failed",
     "failure",
+    "improve",
+    "need to improve",
   ];
 
   // Count positive and negative words
@@ -413,19 +431,50 @@ export function analyzeSentiment(text) {
     if (negativeWords.includes(word)) negativeCount++;
   });
 
-  // Calculate sentiment score (-1 to 1)
+  // Calculate sentiment score (-1 to 1) from text
   const totalSentimentWords = positiveCount + negativeCount;
-  const score =
+  let textScore =
     totalSentimentWords > 0
       ? (positiveCount - negativeCount) / Math.max(totalSentimentWords, 1)
       : 0;
 
-  // Determine sentiment
-  let sentiment = "neutral";
-  if (score > 0.2) sentiment = "positive";
-  else if (score < -0.2) sentiment = "negative";
+  // If rating is provided, use it as a strong signal
+  if (rating !== null) {
+    // Rating-based sentiment: Direct mapping for clarity
+    // 5 stars = strongly positive, 4 stars = positive, 3 stars = neutral, 2 stars = negative, 1 star = strongly negative
+    let ratingScore;
+    if (rating >= 5) ratingScore = 1.0; // 5 stars = maximum positive
+    else if (rating >= 4) ratingScore = 0.7; // 4 stars = positive
+    else if (rating >= 3) ratingScore = 0.0; // 3 stars = neutral
+    else if (rating >= 2) ratingScore = -0.7; // 2 stars = negative
+    else ratingScore = -1.0; // 1 star = maximum negative
 
-  return { sentiment, score: Math.round(score * 100) / 100 };
+    // Combine text score (30% weight) with rating score (70% weight)
+    // Rating is much more reliable than text analysis
+    const combinedScore = textScore * 0.3 + ratingScore * 0.7;
+
+    // Determine sentiment based on combined score with lower threshold
+    // Lower threshold ensures 5-star reviews are always positive
+    let sentiment = "neutral";
+    if (combinedScore > 0.2) sentiment = "positive";
+    else if (combinedScore < -0.2) sentiment = "negative";
+
+    // Override: If rating is 5, always positive; if rating is 1, always negative
+    if (rating >= 5) sentiment = "positive";
+    else if (rating <= 1) sentiment = "negative";
+
+    return {
+      sentiment,
+      score: Math.round(combinedScore * 100) / 100,
+    };
+  }
+
+  // If no rating, use text-only analysis
+  let sentiment = "neutral";
+  if (textScore > 0.2) sentiment = "positive";
+  else if (textScore < -0.2) sentiment = "negative";
+
+  return { sentiment, score: Math.round(textScore * 100) / 100 };
 }
 
 /**

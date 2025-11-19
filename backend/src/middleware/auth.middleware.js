@@ -108,3 +108,66 @@ export const protectRoute = async (req, res, next) => {
     });
   }
 };
+
+// Optional auth middleware - doesn't fail if no token, just sets req.user to null
+export const optionalAuth = async (req, res, next) => {
+  try {
+    // Check if JWT_SECRET_KEY exists
+    if (!process.env.JWT_SECRET_KEY) {
+      req.user = null;
+      return next();
+    }
+
+    // Ensure database connection (for serverless environments)
+    const mongoose = (await import("mongoose")).default;
+    if (mongoose.connection.readyState !== 1) {
+      const { connectDB } = await import("../lib/db.js");
+      try {
+        await connectDB();
+      } catch (dbError) {
+        console.error(
+          "Failed to connect to database in optionalAuth:",
+          dbError
+        );
+        req.user = null;
+        return next();
+      }
+    }
+
+    // Try to get token from cookie first
+    let token = req.cookies.jwt;
+
+    // If no cookie token, check Authorization header
+    if (
+      !token &&
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    if (!token) {
+      req.user = null;
+      return next();
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      if (decoded) {
+        const user = await User.findById(decoded.userId).select("-password");
+        req.user = user || null;
+      } else {
+        req.user = null;
+      }
+    } catch (error) {
+      // If token is invalid/expired, just continue without user
+      req.user = null;
+    }
+
+    next();
+  } catch (error) {
+    // On any error, just continue without user
+    req.user = null;
+    next();
+  }
+};

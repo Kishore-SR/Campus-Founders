@@ -102,6 +102,14 @@ const ProfilePage = () => {
 
   // Video call handler
   const handleVideoCall = async (user) => {
+    // TODO: Revert to actual implementation when video call limits are resolved
+    // Demo video call link - open in new tab with actual username
+    const userId = authUser?.username || authUser?.fullName?.replace(/\s+/g, "_") || authUser?._id || "User";
+    const demoCallUrl = `https://getstream.io/video/demos/join/JRcWJUMVmWdqGYdRqIr5g?user_id=${encodeURIComponent(userId)}`;
+    window.open(demoCallUrl, "_blank");
+    toast.success("Opening demo video call...");
+
+    /* COMMENTED OUT - Actual implementation (to revert later)
     if (!user || !user._id || !user.username) {
       toast.error("Cannot start call with invalid user");
       return;
@@ -155,6 +163,7 @@ const ProfilePage = () => {
       console.error("Error starting video call:", error);
       toast.error("Could not start video call. Please try again.");
     }
+    */
   };
 
   const updateStatusMutation = useMutation({
@@ -1014,6 +1023,14 @@ const InvestorDashboard = ({ authUser }) => {
 
   // Video call handler for Investor Dashboard
   const handleVideoCall = async (user) => {
+    // TODO: Revert to actual implementation when video call limits are resolved
+    // Demo video call link - open in new tab with actual username
+    const userId = authUser?.username || authUser?.fullName?.replace(/\s+/g, "_") || authUser?._id || "User";
+    const demoCallUrl = `https://getstream.io/video/demos/join/JRcWJUMVmWdqGYdRqIr5g?user_id=${encodeURIComponent(userId)}`;
+    window.open(demoCallUrl, "_blank");
+    toast.success("Opening demo video call...");
+
+    /* COMMENTED OUT - Actual implementation (to revert later)
     if (!user || !user._id || !user.username) {
       toast.error("Cannot start call with invalid user");
       return;
@@ -1067,6 +1084,7 @@ const InvestorDashboard = ({ authUser }) => {
       console.error("Error starting video call:", error);
       toast.error("Could not start video call. Please try again.");
     }
+    */
   };
 
   if (isLoading) {

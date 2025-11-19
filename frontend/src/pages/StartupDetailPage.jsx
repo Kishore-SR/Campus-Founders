@@ -39,12 +39,18 @@ const StartupDetailPage = () => {
   const [outgoingRequestsIds, setOutgoingRequestsIds] = useState(new Set());
   const [sendingRequestIds, setSendingRequestIds] = useState(new Set());
 
+  // Scroll to top smoothly when component mounts or id changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [id]);
+
   const { data: response, isLoading } = useQuery({
     queryKey: ["startup", id],
     queryFn: () => getStartupById(id),
   });
 
   const startup = response?.startup;
+  const compatibilityScore = response?.compatibilityScore;
 
   // Fetch friends to check if already connected
   const { data: friends = [] } = useQuery({
@@ -315,6 +321,22 @@ const StartupDetailPage = () => {
               <div className="flex flex-wrap gap-2">
                 <div className="badge badge-primary badge-lg">{startup.category}</div>
                 <div className="badge badge-outline badge-lg">{startup.stage}</div>
+                {/* Compatibility Score for Investors - same style as /startups cards */}
+                {authUser?.role === "investor" &&
+                  authUser.investorApprovalStatus === "approved" &&
+                  compatibilityScore !== undefined && (
+                    <div
+                      className={`badge ${compatibilityScore >= 70
+                        ? "badge-success"
+                        : compatibilityScore >= 50
+                          ? "badge-warning"
+                          : "badge-error"
+                        }`}
+                      title="Compatibility Score: How well this startup matches your investment interests"
+                    >
+                      {compatibilityScore}% Match
+                    </div>
+                  )}
                 {startup.university && (
                   <div className="badge badge-ghost badge-lg gap-1">
                     <MapPin className="size-3" />
@@ -550,7 +572,7 @@ const StartupDetailPage = () => {
         )}
 
         {/* Company Registration Details */}
-        {(startup.mobileNumber || startup.companyRegisteredLocation || startup.companyType || startup.fundingRound || startup.numberOfEmployees || startup.companyContactInfo) && (
+        {(startup.mobileNumber || startup.companyRegisteredLocation || startup.companyType || startup.fundingRound || (startup.numberOfEmployees !== undefined && startup.numberOfEmployees !== null && startup.numberOfEmployees > 0) || startup.companyContactInfo) && (
           <div className="card bg-base-200 shadow-xl">
             <div className="card-body">
               <h2 className="text-2xl font-bold mb-4">Company Registration Details</h2>
@@ -579,7 +601,7 @@ const StartupDetailPage = () => {
                     <p className="font-semibold capitalize">{startup.fundingRound}</p>
                   </div>
                 )}
-                {startup.numberOfEmployees !== undefined && startup.numberOfEmployees !== null && (
+                {startup.numberOfEmployees !== undefined && startup.numberOfEmployees !== null && startup.numberOfEmployees > 0 && (
                   <div className="p-3 bg-base-300 rounded-lg">
                     <p className="text-sm opacity-70">Team Size</p>
                     <p className="font-semibold">{startup.numberOfEmployees} {startup.numberOfEmployees === 1 ? "employee" : "employees"}</p>
@@ -805,7 +827,29 @@ const StartupDetailPage = () => {
                         )}
                       </div>
                       {review.comment && (
-                        <p className="mt-3 opacity-80">{review.comment}</p>
+                        <div className="mt-3">
+                          <p className="opacity-80">{review.comment}</p>
+                          {/* Sentiment Analysis Badge */}
+                          {review.sentimentLabel && (
+                            <div className="mt-2">
+                              <span
+                                className={`badge badge-sm ${review.sentimentLabel === "positive"
+                                  ? "badge-success"
+                                  : review.sentimentLabel === "negative"
+                                    ? "badge-error"
+                                    : "badge-warning"
+                                  }`}
+                                title={`Sentiment Score: ${review.sentimentScore || 0}`}
+                              >
+                                {review.sentimentLabel === "positive"
+                                  ? "😊 Positive"
+                                  : review.sentimentLabel === "negative"
+                                    ? "😞 Negative"
+                                    : "😐 Neutral"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

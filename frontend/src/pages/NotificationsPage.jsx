@@ -53,7 +53,7 @@ const NotificationsPage = () => {
               <section className="space-y-4">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                   <UserCheckIcon className="h-5 w-5 text-primary" />
-                  Friend Requests
+                  Connection Requests
                   <span className="badge badge-primary ml-2">
                     {incomingRequests.length}
                   </span>
@@ -167,7 +167,7 @@ const NotificationsPage = () => {
                             <div className="absolute top-2 right-2 sm:top-4 sm:right-4 sm:mb-14">
                               <div className="badge badge-success">
                                 <UserCheckIcon className="h-3 w-3 mr-1" />
-                                New Friend
+                                New Connection
                               </div>
                             </div>
 
@@ -222,7 +222,7 @@ const NotificationsPage = () => {
                                     )}
                                   </div>
                                   <p className="text-sm my-1">
-                                    Accepted your friend request
+                                    Accepted your connection request
                                   </p>
                                   <p className="text-xs flex items-center opacity-70 mb-4">
                                     <ClockIcon className="h-3 w-3 mr-1" />

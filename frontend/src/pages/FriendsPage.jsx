@@ -57,6 +57,13 @@ const FriendsPage = () => {
     ),
   ];
   const handleVideoCall = async (friend) => {
+    // TODO: Revert to actual implementation when video call limits are resolved
+    // Demo video call link - open in new tab with actual username
+    const userId = authUser?.username || authUser?.fullName?.replace(/\s+/g, "_") || authUser?._id || "User";
+    const demoCallUrl = `https://getstream.io/video/demos/join/JRcWJUMVmWdqGYdRqIr5g?user_id=${encodeURIComponent(userId)}`;
+    window.open(demoCallUrl, "_blank");
+
+    /* COMMENTED OUT - Actual implementation (to revert later)
     if (!friend || !friend._id || !friend.username) {
       toast.error("Cannot start call with invalid user");
       return;
@@ -78,6 +85,7 @@ const FriendsPage = () => {
 
     // Navigate directly to the call page - it will handle initialization
     navigate(`/call/${channelId}`);
+    */
   };
 
   return (
